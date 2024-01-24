@@ -1,0 +1,48 @@
+name: yocto-docker-images
+
+on:
+  push:
+    branches:
+      - '*'
+    paths-ignore:
+      - '**/README.md'
+  pull_request:
+    branches:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  yocto-docker-images:
+    name: yocto:${{ matrix.images.image }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        images:
+        - image: buster
+          tag: 'all'
+        - image: bullseye
+          tag: 'all'
+        - image: bookworm
+          tag: 'all'
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@v3.5.3
+        with:
+#          submodules: 'recursive'
+          fetch-depth: 1
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install 
+      - name: Build
+        run: make ${{ matrix.images.image }}
+      - name: Test the image
+        run: CPUS=2.0 make ${{ matrix.images.image }}.test
+      - name: clean the image
+        run: make ${{ matrix.images.image }}.clean
+      - name: purge the image
+        run: make ${{ matrix.images.image }}.purge
+#      - name: "Push to hub.docker.com"
+#        if: github.ref == 'refs/heads/main'
+#        run: |
+#            echo ${{ secrets.DOCKER_PASS }} | docker login --username ${{ secrets.DOCKER_USER }} --password-stdin
+#            make ${{ matrix.images.image }}.push
