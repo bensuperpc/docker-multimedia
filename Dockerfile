@@ -1,9 +1,13 @@
 ARG DOCKER_IMAGE=archlinux:base
-FROM ${DOCKER_IMAGE} as builder
+FROM ${DOCKER_IMAGE} as requirements
 
 RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu --noconfirm && \
     pacman -S --noconfirm \
     ffmpeg \
+    av1an \
+    dav1d \
+    rav1e \
+    av1an \
     ladspa \
     frei0r-plugins \
     avisynthplus \
@@ -11,6 +15,9 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     imagemagick \
     libwebp \
     libheif \
+    libavif \
+    libwmf \
+    libopenraw \
     libraw \
     handbrake-cli \
     bash \
@@ -19,14 +26,15 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
 #    onevpl-intel-gpu intel-media-sdk
 #    nvidia-utils
 
-FROM scratch as final
-COPY --from=builder / /
-# COPY --from=builder ./app ./app
+# FROM requirements as builder
+
+FROM requirements as final
+# COPY --from=builder / /
 
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VCS_URL="https://github.com/bensuperpc/docker-multimedia"
-ARG PROJECT_NAME
+ARG PROJECT_NAME=""
 ARG AUTHOR="Bensuperpc"
 ARG URL="https://github.com/bensuperpc"
 
@@ -57,9 +65,6 @@ RUN groupadd -g $USER_GID -o $USER_NAME
 RUN useradd -m -u $USER_UID -g $USER_GID -o -s /bin/bash $USER_NAME
 USER $USER_NAME
 
-WORKDIR /home/$USER_NAME
-
-VOLUME ["/work"]
 WORKDIR /work
 
 CMD ["/bin/bash", "-l"]

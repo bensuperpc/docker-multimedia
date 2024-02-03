@@ -55,7 +55,19 @@ make base.run
 ### Convert video with ffmpeg (h264 to h265)
 
 ```bash
-ffmpeg -threads 0 -i video-h264.mp4 -c:v libx265 -vtag hvc1 -bf 4 -map_metadata 0 -map 0 -crf 18 -preset slow -c:a copy -c:s copy video-h265.mkv
+ffmpeg -i video-h264.mp4 -c:v libx265 -crf 18 -preset slow -vtag hvc1 -map_metadata 0 -map 0 -c:a copy -c:s copy video-h265.mkv
+```
+
+### Convert video with ffmpeg (h264 to av1 libaom-av1/libsvtav1/librav1e)
+
+```bash
+ffmpeg -i video-h264.mp4 -c:v libaom-av1 -crf 18 -preset slow -map_metadata 0 -map 0 -c:a copy -c:s copy video-av1.mkv
+```
+
+### Convert images png to webp
+
+```bash
+find . -name "*.png" | parallel -eta cwebp -metadata all -lossless -exact -z 8 "{}" -o "{.}.webp" && find . -name "*.png" -exec sh -c 'touch -r "${0%.*}.png" "${0%.*}.webp"' "{}" ';'
 ```
 
 More FFMPeg options [here](https://trac.ffmpeg.org/wiki/Encode/H.265)
