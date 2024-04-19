@@ -1,5 +1,5 @@
 ARG DOCKER_IMAGE=archlinux:base
-FROM ${DOCKER_IMAGE} as requirements
+FROM ${DOCKER_IMAGE} as base
 
 RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu --noconfirm && \
     pacman -S --noconfirm \
@@ -26,9 +26,9 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
 #    onevpl-intel-gpu intel-media-sdk
 #    nvidia-utils
 
-# FROM requirements as builder
+#FROM base as builder
 
-FROM requirements as final
+FROM base as final
 # COPY --from=builder / /
 
 ARG BUILD_DATE
