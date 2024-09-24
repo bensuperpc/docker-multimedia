@@ -1,5 +1,5 @@
 ARG DOCKER_IMAGE=archlinux:base
-FROM ${DOCKER_IMAGE} as base
+FROM ${DOCKER_IMAGE} AS base
 
 RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu --noconfirm && \
     pacman -S --noconfirm \
