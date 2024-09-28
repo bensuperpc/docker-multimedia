@@ -2,19 +2,6 @@
 #//                                                          //
 #//  docker-multimedia, 2023                                 //
 #//  Created: 04 February, 2023                              //
-#//  Modified: 02 February, 2024                             //
-#//  file: -                                                 //
-#//  -                                                       //
-#//  Source:                                                 //
-#//  OS: ALL                                                 //
-#//  CPU: ALL                                                //
-#//                                                          //
-#//////////////////////////////////////////////////////////////
-
-#//////////////////////////////////////////////////////////////
-#//                                                          //
-#//  docker-multimedia, 2023                                 //
-#//  Created: 04 February, 2023                              //
 #//  Modified: 16 June, 2024                                 //
 #//  file: -                                                 //
 #//  -                                                       //
@@ -27,7 +14,7 @@
 # Base image
 BASE_IMAGE_REGISTRY := docker.io
 BASE_IMAGE_NAME := archlinux
-BASE_IMAGE_TAGS := base base-devel
+BASE_IMAGE_TAGS := base
 
 # Output docker image
 PROJECT_NAME := multimedia
@@ -121,7 +108,7 @@ $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 
 .SECONDEXPANSION:
 $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	$(DOCKER_EXEC) run -it \
+	$(DOCKER_EXEC) run --rm -it \
 		--security-opt no-new-privileges --read-only --user $(UID):$(GID) \
 		--mount type=bind,source=$(shell pwd),target=/work --workdir /work \
 		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
