@@ -55,13 +55,25 @@ make base.run
 ### Convert video with ffmpeg (H264 to AV1)
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -c:v libsvtav1 -preset 4 -crf 24 -b:v 0 -c:a copy -c:s copy -map_metadata 0 -map_chapters 0 output.mp4
+./docker-multimedia.sh ffmpeg -i input.mp4 -c:v libsvtav1 -preset 3 -crf 18 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+```
+
+### Convert video with ffmpeg (h264 to h265)
+
+```bash
+ffmpeg -i video-h264.mp4 -c:v libx265 -crf 18 -preset slow -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 video-h265.mkv
 ```
 
 ### Get SSIM or PSNR with ffmpeg
 
 ```bash
-./docker-multimedia.sh ffmpeg -i output_av1_p4_c24.mp4 -i desktop_2020.mp4 -filter_complex "ssim" -f null /dev/null 
+./docker-multimedia.sh ffmpeg -i input.mp4 -i ref_video.mp4 -filter_complex "ssim" -f null /dev/null 
+```
+
+### Convert images png to webp
+
+```bash
+./docker-multimedia.sh find . -name "*.png" | parallel -eta cwebp -metadata all -lossless -exact -z 7 "{}" -o "{.}.webp" && find . -name "*.png" -exec sh -c 'touch -r "${0%.*}.png" "${0%.*}.webp"' "{}" ';'
 ```
 
 
