@@ -10,6 +10,6 @@ docker run --rm -it \
         --mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=4GB \
         --platform linux/amd64 \
         --cpus 8.0 --cpu-shares 1024 --memory 16GB --memory-reservation 2GB \
-        --name qt-multimedia \
+        --name qt-multimedia-$(uuidgen)
         docker.io/bensuperpc/multimedia:archlinux-base \
         "$@"

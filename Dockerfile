@@ -13,6 +13,7 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     svt-av1 \
     libheif \
     libavif \
+    aom \
 #   VP9
     libvpx \
 #   Jpeg
@@ -21,7 +22,6 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     openjpeg2 \
 #   WebP
     libwebp \
-    aom \
     handbrake-cli \
     ladspa \
     frei0r-plugins \
@@ -33,13 +33,16 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     libraw \
     libpng \
     timidity++ \
-    libva-mesa-driver \
     bash \
-# Drivers
+#   MPEG2
+    twolame \
+#   Drivers intel
     intel-media-sdk \
     onevpl-intel-gpu \
     libva-intel-driver \
     intel-compute-runtime \
+#   Drivers AMD
+    libva-mesa-driver \
     && pacman -Scc --noconfirm
   
 #    nvidia-utils
