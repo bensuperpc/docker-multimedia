@@ -1,50 +1,51 @@
-ARG DOCKER_IMAGE=archlinux:base
+ARG DOCKER_IMAGE=ubuntu:latest
 FROM ${DOCKER_IMAGE} AS base
 
-RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu --noconfirm && \
-    pacman -S --noconfirm \
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
 #   ffmpeg and video tools
     ffmpeg \
 #   AV1
-    av1an \
-    dav1d \
+    libdav1d-dev \
     rav1e \
-    av1an \
     svt-av1 \
-    libheif \
-    libavif \
-    aom \
+    libheif-dev \
+    libavif-dev \
+    libaom-dev \
 #   VP9
-    libvpx \
-#   Jpeg
+    libvpx-dev \
+#   JPEG
     jpegoptim \
-    libjpeg-turbo \
-    openjpeg2 \
+    libjpeg-turbo8-dev \
+    libopenjp2-7-dev \
 #   WebP
-    libwebp \
+    libwebp-dev \
     handbrake-cli \
-    ladspa \
+    ladspa-sdk \
     frei0r-plugins \
-    avisynthplus \
-    opencv \
+#    avisynth \
+    libopencv-dev \
     imagemagick \
-    libwmf \
-    libopenraw \
-    libraw \
-    libpng \
-    timidity++ \
+    libwmf-dev \
+    libopenraw-dev \
+    libraw-dev \
+    libpng-dev \
+    timidity \
     bash \
+    libpng-tools \
 #   MPEG2
     twolame \
-#   Drivers intel
-    intel-media-sdk \
-    onevpl-intel-gpu \
-    libva-intel-driver \
-    intel-compute-runtime \
-#   Drivers AMD
-    libva-mesa-driver \
+#   Intel drivers
+    intel-media-va-driver \
+#    intel-vaapi-driver \
+    intel-opencl-icd \
+#   AMD drivers
+#    libva-mesa-driver \
 #   Drivers Nvidia
-    && pacman -Scc --noconfirm
+    # vdpau-driver-all \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
   
 #    nvidia-utils
 

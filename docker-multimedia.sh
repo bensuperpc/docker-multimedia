@@ -7,7 +7,7 @@ TAG="archlinux-base"
 
 DOCKER_IMAGE="qt-multimedia-$(uuidgen)"
 
-CPUS="16.0"
+CPUS="8.0"
 CPU_SHARES="1024"
 RES_RAM="2GB"
 MAX_RAM="16GB"
