@@ -37,6 +37,12 @@ RUN apt-get update && \
     libpng-tools \
 #   MPEG2
     twolame \
+#   Compress tools
+#    xz-utils \
+#    gzip \
+#    bzip2 \
+#    tar \
+#    zstd
 #   Intel drivers
     intel-media-va-driver \
 #    intel-vaapi-driver \

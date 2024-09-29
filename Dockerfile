@@ -36,6 +36,12 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     bash \
 #   MPEG2
     twolame \
+#   Compress tools
+    xz \
+    gzip \
+    bzip2 \
+    tar \
+    zstd \
 #   Drivers intel
     intel-media-sdk \
     onevpl-intel-gpu \
