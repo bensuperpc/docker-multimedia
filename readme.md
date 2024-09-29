@@ -52,29 +52,18 @@ Now you can start the container, it will mount the current directory in the cont
 make base.run
 ```
 
-### Convert video with ffmpeg (h264 to h265)
+### Convert video with ffmpeg (H264 to AV1)
 
 ```bash
-ffmpeg -i video-h264.mp4 -c:v libx265 -crf 18 -preset slow -vtag hvc1 -map_metadata 0 -map 0 -c:a copy -c:s copy video-h265.mkv
+./docker-multimedia.sh ffmpeg -i input.mp4 -c:v libsvtav1 -preset 4 -crf 24 -b:v 0 -c:a copy -c:s copy -map_metadata 0 -map_chapters 0 output.mp4
 ```
 
-### Convert video with ffmpeg (h264 to av1 libaom-av1/libsvtav1/librav1e)
+### Get SSIM or PSNR with ffmpeg
 
 ```bash
-ffmpeg -i video-h264.mp4 -c:v libaom-av1 -crf 18 -preset slow -map_metadata 0 -map 0 -c:a copy -c:s copy video-av1.mkv
+./docker-multimedia.sh ffmpeg -i output_av1_p4_c24.mp4 -i desktop_2020.mp4 -filter_complex "ssim" -f null /dev/null 
 ```
 
-### Convert images png to webp
-
-```bash
-find . -name "*.png" | parallel -eta cwebp -metadata all -lossless -exact -z 8 "{}" -o "{.}.webp" && find . -name "*.png" -exec sh -c 'touch -r "${0%.*}.png" "${0%.*}.webp"' "{}" ';'
-```
-
-More FFMPeg options [here](https://trac.ffmpeg.org/wiki/Encode/H.265)
-
-```bash
--maxrate 1M -bufsize 2M -profile:v main10
-```
 
 ## Update submodules and base archlinux image
 
