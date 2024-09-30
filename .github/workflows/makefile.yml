@@ -19,11 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         images:
-        - image: buster
-          tag: 'all'
-        - image: bullseye
-          tag: 'all'
-        - image: bookworm
+        - image: base
           tag: 'all'
     steps:
       - name: "Checkout Code"
@@ -31,8 +27,8 @@ jobs:
         with:
 #          submodules: 'recursive'
           fetch-depth: 1
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install 
+#      - name: Install dependencies
+#        run: sudo apt-get update && sudo apt-get install 
       - name: Build
         run: make ${{ matrix.images.image }}
       - name: Test the image
