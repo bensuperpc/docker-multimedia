@@ -2,13 +2,11 @@
 
 ## _Multimedia apps in docker_
 
-You can convert your video with ffmpeg and handbrake in docker, image based on archlinux.
+All multimedia apps (FFMPEG, ImageMagick, AV1 encoders ect...) in a docker container.
 
 ## Features
 
 - FFMPEG
-- Handbrake
-- ImageMagick
 
 ## Requirements
 
@@ -24,9 +22,12 @@ You can convert your video with ffmpeg and handbrake in docker, image based on a
 
 | Hardware | Minimum | Recommended |
 | ------ | ------ | ------ |
-| CPU | 2 cores | 8 cores |
-| GPU | - | - |
-| Disk space | HDD | SSD |
+| CPU | 1 cores | 4 cores |
+| Instruction set (x86) | x86-64-v1 | x86-64-v3 |
+| Instruction set (ARM) | armv8 | armv8 |
+| RAM | 1 GB | 16 GB |
+| GPU | - | Hardware acceleration |
+| Disk space | 1 GB | 10 GB |
 | Internet | 10 Mbps | 100 Mbps |
 
 
@@ -44,57 +45,63 @@ git clone https://github.com/bensuperpc/docker-multimedia.git
 make base
 ```
 
-### Start the container
+Test the container
+
+```bash
+make base.test
+```
+
+## Start the container
 
 Now you can start the container, it will mount the current directory in the container.
 
+### Convert video with ffmpeg to AV1 CRF (SVT-AV1)
+
 ```bash
-make base.run
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 3 -crf 18 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
-### Convert video with ffmpeg H264 to AV1 (SVT-AV1)
+### Convert video with ffmpeg to AV1 ABR 2 pass (SVT-AV1)
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -c:v libsvtav1 -preset 3 -crf 18 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -b:v 1000k -minrate 500k -maxrate 1500k -bufsize 6000k -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -c:v libsvtav1 -b:v 1000k -minrate 500k -maxrate 1500k -bufsize 6000k -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
-### Convert video with ffmpeg H264 to AV1 (SVT-AV1)
+### Convert video with ffmpeg to AV1 CRF(AOM)
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -c:v libaom-av1 -crf 18 -cpu-used 3 -row-mt 1 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v libaom-av1 -crf 18 -cpu-used 3 -row-mt 1 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
-### Convert video with ffmpeg H264 to AV1 (Rav1e)
+### Convert video with ffmpeg to AV1 CRF (Rav1e)
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -y -c:v librav1e -crf 18 -speed 3 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+./docker-multimedia.sh ffmpeg -i input.mkv -y -c:v librav1e -crf 18 -speed 3 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
-### Convert video with ffmpeg (h264 to h265)
+### Convert video with ffmpeg to h265 CRF (x265)
 
 ```bash
-ffmpeg -i video-h264.mp4 -y -c:v libx265 -crf 18 -preset slow -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 video-h265.mkv
+ffmpeg -i video-h264.mkv -y -c:v libx265 -crf 18 -preset slow -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 video-h265.mkv
 ```
 
 ### Get SSIM with ffmpeg
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -i ref_video.mp4 -filter_complex "ssim" -f null /dev/null 
+./docker-multimedia.sh ffmpeg -i input.mkv -i ref_video.mkv -filter_complex "ssim" -f null /dev/null 
 ```
 
 ### Get PSNR with ffmpeg
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -i ref_video.mp4 -filter_complex "psnr" -f null /dev/null 
+./docker-multimedia.sh ffmpeg -i input.mkv -i ref_video.mkv -filter_complex "psnr" -f null /dev/null 
 ```
-
 
 ### Get VMAF with ffmpeg
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -i ref_video.mp4 -filter_complex "[0:v][1:v]libvmaf" -f null /dev/null 
+./docker-multimedia.sh ffmpeg -i input.mkv -i ref_video.mkv -filter_complex "[0:v][1:v]libvmaf" -f null /dev/null 
 ```
-
 
 ### Convert images png to webp (lossless)
 
