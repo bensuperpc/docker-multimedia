@@ -14,12 +14,11 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     libheif \
     libavif \
     aom \
-#   VP9
-    libvpx \
 #   Jpeg
     jpegoptim \
     libjpeg-turbo \
-    openjpeg2 \
+    openjpeg2 \    
+    libjxl \
 #   WebP
     libwebp \
     handbrake-cli \
@@ -32,15 +31,28 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     libopenraw \
     libraw \
     libpng \
-    timidity++ \
+    timidity++ \    
+    mencoder \
     bash \
 #   MPEG2
     twolame \
+    # HDR    
+    libultrahdr \
+    # Sound    
+    sox \    
+    vorbis-tools \
+    # PDF   
+    ghostscript \   
+    exiv2 \
+# Utils
+    mediainfo \    
+    ffmpegthumbnailer \    
+    mkvtoolnix-cli \
 #   Compress tools
     xz \
     gzip \
     bzip2 \
-    tar \
+    tar \    
     zstd \
 #   Drivers intel
     intel-media-sdk \

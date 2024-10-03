@@ -82,7 +82,13 @@ Now you can start the container, it will mount the current directory in the cont
 ### Convert video with ffmpeg to h265 CRF (x265)
 
 ```bash
-ffmpeg -i video-h264.mkv -y -c:v libx265 -crf 18 -preset slow -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 video-h265.mkv
+ffmpeg -i input.mkv -y -c:v libx265 -crf 18 -preset slow -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+```
+
+### Convert video with ffmpeg to h265 ABR 2 pass and down to 720p (x265)
+
+```bash
+ffmpeg -i input.mkv -y -c:v libx265 -preset medium -vf scale=1280:-1 -b:v 2000k -minrate 500k -maxrate 4000k -bufsize 8000k -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -preset medium -vf scale=1280:-1 -c:v libx265 -b:v 2000k -minrate 500k -maxrate 4000k -bufsize 8000k -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 ### Get SSIM with ffmpeg
