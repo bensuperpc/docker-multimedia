@@ -58,13 +58,13 @@ Now you can start the container, it will mount the current directory in the cont
 ### Convert video with ffmpeg to AV1 CRF (SVT-AV1)
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 3 -crf 18 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 4 -crf 18 -g 240 -svtav1-params tune=0 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 ### Convert video with ffmpeg to AV1 ABR 2 pass (SVT-AV1)
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -b:v 1000k -minrate 500k -maxrate 1500k -bufsize 6000k -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -c:v libsvtav1 -b:v 1000k -minrate 500k -maxrate 1500k -bufsize 6000k -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 4 -b:v 1000k -minrate 500k -maxrate 1500k -bufsize 6000k -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -c:v libsvtav1 -preset 4 -b:v 1000k -minrate 500k -maxrate 1500k -bufsize 6000k -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 ### Convert video with ffmpeg to AV1 CRF(AOM)
@@ -94,19 +94,19 @@ ffmpeg -i input.mkv -y -c:v libx265 -preset medium -vf scale=1280:-1 -b:v 2000k 
 ### Get SSIM with ffmpeg
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mkv -i ref_video.mkv -filter_complex "ssim" -f null /dev/null 
+./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi ssim -f null –
 ```
 
 ### Get PSNR with ffmpeg
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mkv -i ref_video.mkv -filter_complex "psnr" -f null /dev/null 
+./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi psnr -f null –
 ```
 
 ### Get VMAF with ffmpeg
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mkv -i ref_video.mkv -filter_complex "[0:v][1:v]libvmaf" -f null /dev/null 
+./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi libvmaf -f null –
 ```
 
 ### Convert images png to webp (lossless)
