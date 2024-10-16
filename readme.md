@@ -58,13 +58,19 @@ Now you can start the container, it will mount the current directory in the cont
 ### Convert video with ffmpeg to AV1 CRF (SVT-AV1)
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 4 -crf 18 -g 240 -svtav1-params tune=0 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 4 -crf 18 -svtav1-params tune=0 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
-### Convert video with ffmpeg to AV1 ABR 2 pass (SVT-AV1)
+Optional: 
+- Add `-vf scale=1920:-1` to downscale the video to 1080p
+- Add `-g 240` to set the keyframe interval to 240 frames (every 4 seconds at 60fps)
+- Add `:film-grain=8` in svtav1-params to add film grain to the video
+- Add `-pix_fmt yuv420p10le` to set the pixel format to 10 bits or `-pix_fmt yuv420p` to set the pixel format to 8 bits
+
+With **AV1AN** (WIP):
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 4 -b:v 1000k -minrate 500k -maxrate 1500k -bufsize 6000k -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -c:v libsvtav1 -preset 4 -b:v 1000k -minrate 500k -maxrate 1500k -bufsize 6000k -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh av1an -i input.mkv --encoder svt-av1 --video-params "--rc 0 --crf 18 --preset 4 --tune 0 --keyint 300" --audio-params "-c:a copy" -o output.mkv
 ```
 
 ### Convert video with ffmpeg to AV1 CRF(AOM)
