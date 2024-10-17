@@ -64,7 +64,7 @@ Now you can start the container, it will mount the current directory in the cont
 Optional: 
 - Add `-vf scale=1920:-1` to downscale the video to 1080p
 - Add `-g 240` to set the keyframe interval to 240 frames (every 4 seconds at 60fps)
-- Add `:film-grain=8` in svtav1-params to add film grain to the video
+- Add `:film-grain=8` in svtav1-params to add film grain to the video (lower value for animation, higher value for live action with more grain)
 - Add `-pix_fmt yuv420p10le` to set the pixel format to 10 bits or `-pix_fmt yuv420p` to set the pixel format to 8 bits
 
 With **AV1AN** (WIP):
@@ -113,6 +113,12 @@ ffmpeg -i input.mkv -y -c:v libx265 -preset medium -vf scale=1280:-1 -b:v 2000k 
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi libvmaf -f null –
+```
+
+### Cut video with ffmpeg withou re-encoding
+
+```bash
+./docker-multimedia.sh ffmpeg -i input.mp4 -ss 125 -t 75 -map_metadata 0 -vcodec copy -acodec copy out.mkv
 ```
 
 ### Convert images png to webp (lossless)
