@@ -33,7 +33,7 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     libpng \
     timidity++ \    
     mencoder \
-    bash \
+    devtools \
 #   MPEG2
     twolame \
     # HDR    

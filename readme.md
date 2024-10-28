@@ -63,8 +63,9 @@ Now you can start the container, it will mount the current directory in the cont
 
 Optional: 
 - Add `-vf scale=1920:-1` to downscale the video to 1080p
-- Add `-g 240` to set the keyframe interval to 240 frames (every 4 seconds at 60fps)
-- Add `:film-grain=8` in svtav1-params to add film grain to the video (lower value for animation, higher value for live action with more grain)
+- Add `-g 60` to set the keyframe interval to 60 frames (every 1 seconds at 60fps)
+- Add `-tune 0` for subjective quality, 1 for objective quality (PSNR), default is 1
+- Add `-tune 0:film-grain=8` in svtav1-params to add film grain to the video (lower value for animation, higher value for live action with more grain)
 - Add `-pix_fmt yuv420p10le` to set the pixel format to 10 bits or `-pix_fmt yuv420p` to set the pixel format to 8 bits
 
 With **AV1AN** (WIP):
@@ -146,6 +147,11 @@ make update
 ```
 
 ## Useful links
+
+- [FFMPEG](https://ffmpeg.org/)
+- [ImageMagick](https://imagemagick.org/)
+- [Simple SVT-AV1 Beginner Guide](https://gist.github.com/BlueSwordM/86dfcb6ab38a93a524472a0cbe4c4100)
+- [CommonQuestions SVT-AV1](https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/CommonQuestions.md)
 
 ## License
 
