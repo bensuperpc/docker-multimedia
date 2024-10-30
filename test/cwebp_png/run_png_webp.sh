@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-ARG1=${1:-preset_cwebp.txt}
-ARG2=${2:-z_webp.txt}
+ARG1=${1:-preset_png_webp.txt}
+ARG2=${2:-z_png_webp.txt}
 CPU_CORES=${3:-1}
 
 # Check if the files exist
@@ -18,4 +18,4 @@ if [ ! -f "${ARG2}" ]; then
 fi
 
 # --line-buffer
-parallel --jobs ${CPU_CORES} ./docker-multimedia.sh ./command_cwebp.sh {1} {2} :::: ${ARG1} ${ARG2}
+parallel --jobs ${CPU_CORES} ./docker-multimedia.sh ./command_png_webp.sh {1} {2} :::: ${ARG1} ${ARG2}
