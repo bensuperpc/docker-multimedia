@@ -6,8 +6,8 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
-readonly codec="$1"
-readonly z="$2"
+readonly codec=${1:-aom}
+readonly z=${2:-10}
 
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 
