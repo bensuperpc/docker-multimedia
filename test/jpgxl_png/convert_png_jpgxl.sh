@@ -6,7 +6,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-readonly compression="$2"
+readonly compression="$1"
 
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 
