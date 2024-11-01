@@ -55,12 +55,12 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     tar \    
     zstd \
 #   Drivers intel
-    intel-media-sdk \
-    onevpl-intel-gpu \
-    libva-intel-driver \
-    intel-compute-runtime \
+#   intel-media-sdk \
+#    onevpl-intel-gpu \
+#    libva-intel-driver \
+#    intel-compute-runtime \
 #   Drivers AMD
-    libva-mesa-driver \
+#    libva-mesa-driver \
 #   Drivers Nvidia
     && pacman -Scc --noconfirm
   

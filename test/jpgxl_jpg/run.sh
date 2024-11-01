@@ -1,11 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-readonly ARG1=${1:-preset_av1.txt}
-readonly ARG2=${2:-crf_av1.txt}
+readonly ARG1=${1:-preset_jpg_jpgxl.txt}
+readonly ARG2=${2:-e_jpg_jpgxl.txt}
 readonly CPU_CORES=${3:-1}
 readonly DOCKER_SCRIPT=docker-multimedia.sh
-readonly CONVERT_SCRIPT=command_av1.sh
+readonly CONVERT_SCRIPT=convert_jpg_jpgxl.sh
 
 # Check if the files exist
 

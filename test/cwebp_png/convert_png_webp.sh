@@ -15,18 +15,18 @@ function convert_to_webp {
     local file="$1"
     local output_file="${file%.*}_${preset}_z${z}_lossless.webp"
 
-    # Convert the image to WebP format
+    # Convert the image to WebP format -alpha_filter best -hint picture -low_memory
     cwebp -quiet -preset "$preset" -metadata all -lossless -exact -z "$z" "$file" -o "$output_file"
 
     # Copy the timestamp from the original file
     touch -r "$file" "$output_file"
 
-    # Check if the images are different
-    #if ! diff -q <(magick "$file" ppm:-) <(magick "$output_file" ppm:-) >/dev/null 2>&1; then
-    #    echo "Error: images differ for file $file"
-    #    exit 1
-    #fi
+    # Check if the images are identical
     if ! compare -metric AE "$file" "$output_file" null: >/dev/null 2>&1; then
+        echo "Error: images differ for file $file" >&2
+        exit 1
+    fi
+    if ! diff -q <(magick "$file" ppm:-) <(magick "$output_file" ppm:-) >/dev/null 2>&1; then
         echo "Error: images differ for file $file" >&2
         exit 1
     fi
