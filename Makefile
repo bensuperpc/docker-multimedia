@@ -137,8 +137,8 @@ $(addsuffix .pull,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 .PHONY: clean
 clean:
 	@echo "Clean all untagged images"
-	$(DOCKER) system prune -f
-#	$(DOCKE) builder prune -f
+	$(DOCKER_EXEC) system prune -f
+#	$(DOCKER_EXEC) builder prune -f
 
 .PHONY: purge
 purge: clean

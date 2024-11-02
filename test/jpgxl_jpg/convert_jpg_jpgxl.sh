@@ -15,19 +15,22 @@ function convert_to_jxl {
     local file="$1"
     local output_file="${file%.*}_${preset}_c${compression}.jxl"
 
-    # Convert the JPEG to JPEG XL with lossless JPEG mode --lossless_jpeg=0
-    cjxl --quiet --num_threads 1 --lossless_jpeg 0 --brotli_effort 11 "$file" "$output_file"
+    # Convert the JPEG to JPEG XL with lossless JPEG mode
+    cjxl --quiet --num_threads 1 --brotli_effort 11 --lossless_jpeg 1  "$file" "$output_file"
 
     # Copy the timestamp from the original file
     touch -r "$file" "$output_file"
 
+    # Copy metadata from the original file
+    exiftool -TagsFromFile "$file" "$output_file"
+
     # Check if the images are identical
     if ! compare -metric AE "$file" "$output_file" null: >/dev/null 2>&1; then
-        echo "Error: images differ for file $file" >&2
+        echo "Error: images differ (compare) for file $file" >&2
         exit 1
     fi
     if ! diff -q <(magick "$file" ppm:-) <(magick "$output_file" ppm:-) >/dev/null 2>&1; then
-        echo "Error: images differ for file $file" >&2
+        echo "Error: images differ (diff) for file $file" >&2
         exit 1
     fi
 }

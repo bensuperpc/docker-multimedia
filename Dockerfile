@@ -21,6 +21,7 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     libjxl \
 #   WebP
     libwebp \
+    webp-pixbuf-loader \
     handbrake-cli \
     ladspa \
     frei0r-plugins \
@@ -34,6 +35,17 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     timidity++ \    
     mencoder \
     devtools \
+    sdl \
+    devil \
+    hdf5 \
+    libzip \
+    djvulibre \
+    wavpack \
+    openmpi \
+    gvfs \
+    mat2 \
+#   DVD
+    libdvdcss \
 #   MPEG2
     twolame \
     # HDR    
@@ -42,8 +54,9 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     sox \    
     vorbis-tools \
     # PDF   
-    ghostscript \   
+    ghostscript \ 
     exiv2 \
+    img2pdf \
 # Utils
     mediainfo \    
     ffmpegthumbnailer \    
@@ -54,6 +67,7 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     bzip2 \
     tar \    
     zstd \
+#   vulkan-driver
 #   Drivers intel
 #   intel-media-sdk \
 #    onevpl-intel-gpu \
@@ -62,16 +76,15 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
 #   Drivers AMD
 #    libva-mesa-driver \
 #   Drivers Nvidia
+#    nvidia-utils \
     && pacman -Scc --noconfirm
-  
-#    nvidia-utils
 
 FROM base AS final
 
-ARG BUILD_DATE=""
+ARG BUILD_DATE=${BUILD_DATE}
 ARG VCS_REF=""
 ARG VCS_URL="https://github.com/bensuperpc/docker-multimedia"
-ARG PROJECT_NAME=""
+ARG PROJECT_NAME=${PROJECT_NAME}
 ARG AUTHOR="Bensuperpc"
 ARG URL="https://github.com/bensuperpc"
 
@@ -95,6 +108,9 @@ LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.vcs-ref=${VCS_REF} \
       org.label-schema.docker.cmd=""
 
+# Fix PATH for perl
+ENV PATH="/usr/bin/vendor_perl:$PATH"
+
 VOLUME [ "/work" ]
 WORKDIR /work
 
@@ -102,4 +118,4 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT [ "/entrypoint.sh" ]
-CMD [ "/bin/bash" ]
+CMD [ "ffmpeg", "-version" ]

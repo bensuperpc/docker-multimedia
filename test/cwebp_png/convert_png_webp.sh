@@ -20,6 +20,9 @@ function convert_to_webp {
     # Copy the timestamp from the original file
     touch -r "$file" "$output_file"
 
+    # Copy metadata from the original file (already copied with -metadata all)
+    #exiftool -TagsFromFile "$file" "$output_file"
+
     # Check if the images are identical
     if ! compare -metric AE "$file" "$output_file" null: >/dev/null 2>&1; then
         echo "Error: images differ for file $file" >&2

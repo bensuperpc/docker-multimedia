@@ -2,11 +2,11 @@
 set -euo pipefail
 
 if [ "$#" -ne 1 ]; then
-    echo "Wrong number of parameters: ${#}, expected 2 parameters: <compression>"
+    echo "Wrong number of parameters: ${#}, expected 1 parameters: <compression>"
     exit 1
 fi
 
-readonly compression="$1"
+readonly compression=${1:-9}
 
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 
@@ -20,11 +20,8 @@ function convert_to_jxl {
     # Copy the timestamp from the original file
     touch -r "$file" "$output_file"
 
-    # Check if the images are identical
-    if ! compare -metric AE "$file" "$output_file" null: >/dev/null 2>&1; then
-        echo "Error: images differ for file $file" >&2
-        exit 1
-    fi
+    # Copy metadata from the original file
+    exiftool -TagsFromFile "$file" "$output_file"
 
     # Check if the images are identical
     if ! compare -metric AE "$file" "$output_file" null: >/dev/null 2>&1; then
