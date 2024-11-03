@@ -63,7 +63,7 @@ Now you can start the container, it will mount the current directory in the cont
 
 Optional: 
 - Add `-vf scale=1920:-1` to downscale the video to 1080p
-- Add `-g 60` to set the keyframe interval to 60 frames (every 1 seconds at 60fps)
+- Add `-g 60` to set the keyframe interval to 60 frames (every 1 seconds at 60fps), lower value increase quality but increase file size
 - Add `-tune 0` for subjective quality, 1 for objective quality (PSNR), default is 1
 - Add `-tune 0:film-grain=8` in svtav1-params to add film grain to the video (lower value for animation, higher value for live action with more grain)
 - Add `-pix_fmt yuv420p10le` to set the pixel format to 10 bits or `-pix_fmt yuv420p` to set the pixel format to 8 bits
@@ -71,8 +71,12 @@ Optional:
 With **AV1AN** (WIP):
 
 ```bash
-./docker-multimedia.sh av1an -i input.mkv --encoder svt-av1 --video-params "--rc 0 --crf 18 --preset 4 --tune 0 --keyint 300" --audio-params "-c:a copy" -o output.mkv
+./docker-multimedia.sh av1an -i input.mkv --encoder svt-av1 --video-params "--rc 0 --crf 18 --preset 4 --tune 0" --audio-params "-c:a copy" -o output.mkv
 ```
+
+Optional:
+- Add `--video-filter "scale=1920:-1"` to downscale the video to 1080p
+- Add ` --keyint 60` in video-params to set the keyframe interval to 60 frames (every 1 seconds at 60fps), lower value increase quality but increase file size
 
 ### Convert video with ffmpeg to AV1 CRF(AOM)
 
@@ -126,12 +130,6 @@ ffmpeg -i input.mkv -y -c:v libx265 -preset medium -vf scale=1280:-1 -b:v 2000k 
 
 ```bash
 ./docker-multimedia.sh find . -name "*.png" | parallel -eta cwebp -metadata all -lossless -exact -z 7 "{}" -o "{.}.webp" && find . -name "*.png" -exec sh -c 'touch -r "${0%.*}.png" "${0%.*}.webp"' "{}" ';'
-```
-
-### Convert images png to avif (lossless)
-
-```bash
-./docker-multimedia.sh find . -name "*.png" | parallel -eta heif-enc --avif --lossless "{}" -o "{.}.avif" && find . -name "*.png" -exec sh -c 'touch -r "${0%.*}.png" "${0%.*}.avif"' "{}" ';'
 ```
 
 ### Get difference between two images
