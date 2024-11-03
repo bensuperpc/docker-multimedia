@@ -31,7 +31,7 @@ UID := $(shell id -u ${USER})
 GID := $(shell id -g ${USER})
 
 # Max CPU and memory
-CPUS := 8.0
+CPUS := $(shell nproc)
 CPU_SHARES := 1024
 MEMORY := 16GB
 MEMORY_RESERVATION := 2GB
