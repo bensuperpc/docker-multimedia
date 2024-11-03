@@ -33,8 +33,8 @@ jobs:
         run: make ${{ matrix.image }}
       - name: Test the image
         run: CPUS=2.0 make ${{ matrix.image }}.test
-      - name: clear the image
-        run: make ${{ matrix.image }}.clear
+      - name: clean the image
+        run: make ${{ matrix.image }}.clean
       - name: purge the image
         run: make ${{ matrix.image }}.purge
 #      - name: "Push to hub.docker.com"
