@@ -71,12 +71,12 @@ ENV TERM=xterm-256color
 
 LABEL maintainer="Bensuperpc"
 LABEL author="Bensuperpc"
-LABEL description="Docker image with qt"
+LABEL description="Docker image with multimedia tools"
 
 LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.build-date=${BUILD_DATE} \
       org.label-schema.name=${PROJECT_NAME} \
-      org.label-schema.description="qt" \
+      org.label-schema.description="multimedia tools" \
       org.label-schema.version=${IMAGE_VERSION} \
       org.label-schema.vendor=${AUTHOR} \
       org.label-schema.url=${URL} \

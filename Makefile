@@ -2,7 +2,7 @@
 #//                                                          //
 #//  docker-multimedia, 2023                                 //
 #//  Created: 04 February, 2023                              //
-#//  Modified: 16 June, 2024                                 //
+#//  Modified: 05 October, 2024                              //
 #//  file: -                                                 //
 #//  -                                                       //
 #//  Source:                                                 //
@@ -11,10 +11,12 @@
 #//                                                          //
 #//////////////////////////////////////////////////////////////
 
+SUBDIRS := archlinux
+
 # Base image
 BASE_IMAGE_REGISTRY := docker.io
-BASE_IMAGE_NAME := archlinux
-BASE_IMAGE_TAGS := base
+#BASE_IMAGE_NAME :=
+#BASE_IMAGE_TAGS :=
 
 # Output docker image
 PROJECT_NAME := multimedia
@@ -29,7 +31,7 @@ UID := $(shell id -u ${USER})
 GID := $(shell id -g ${USER})
 
 # Max CPU and memory
-CPUS := 4.0
+CPUS := 8.0
 CPU_SHARES := 1024
 MEMORY := 16GB
 MEMORY_RESERVATION := 2GB
@@ -37,12 +39,12 @@ TMPFS_SIZE := 4GB
 BUILD_CPU_SHARES := 1024
 BUILD_MEMORY := 16GB
 
-TEST_CMD := ffmpeg -version
+TEST_CMD := ./test/test.sh
 
 PROGRESS_OUTPUT := plain
 
-ARCH_LIST := linux/amd64
 # linux/amd64,linux/amd64/v3, linux/arm64, linux/riscv64, linux/ppc64
+ARCH_LIST := linux/amd64
 comma:= ,
 PLATFORMS := $(subst $() $(),$(comma),$(ARCH_LIST))
 
@@ -53,7 +55,6 @@ OUTPUT_IMAGE := $(AUTHOR)/$(IMAGE_NAME)
 DOCKERFILE := Dockerfile
 DOCKER_EXEC := docker
 DOCKER_DRIVER := --load
-# --push
 
 # Git config
 GIT_SHA := $(shell git rev-parse HEAD)
@@ -62,134 +63,69 @@ GIT_ORIGIN := $(shell git config --get remote.origin.url)
 DATE := $(shell date -u +"%Y%m%d")
 UUID := $(shell uuidgen)
 
-.PHONY: all test push pull run
+# Custom targets
+CUSTOM_TARGETS := help
 
-all: $(addsuffix .test,$(BASE_IMAGE_TAGS))
+# Merge all variables
+MAKEFILE_VARS := PROJECT_NAME=$(PROJECT_NAME) AUTHOR=$(AUTHOR) REGISTRY=$(REGISTRY) \
+	IMAGE_VERSION=$(IMAGE_VERSION) PLATFORMS="$(PLATFORMS)" \
+	CPUS=$(CPUS) CPU_SHARES=$(CPU_SHARES) MEMORY=$(MEMORY) MEMORY_RESERVATION=$(MEMORY_RESERVATION) \
+	BUILD_CPU_SHARES=$(BUILD_CPU_SHARES) BUILD_MEMORY=$(BUILD_MEMORY) \
+	WEB_SITE=$(WEB_SITE) BASE_IMAGE_REGISTRY=$(BASE_IMAGE_REGISTRY) \
+	DOCKERFILE=$(DOCKERFILE) DOCKER_EXEC=$(DOCKER_EXEC) DOCKER_DRIVER=$(DOCKER_DRIVER) \
+	GIT_SHA=$(GIT_SHA) GIT_ORIGIN=$(GIT_ORIGIN) DATE=$(DATE) UUID=$(UUID) \
+	USER=$(USER) UID=$(UID) GID=$(GID) TMPFS_SIZE=$(TMPFS_SIZE) \
+	TEST_CMD=$(TEST_CMD) PROGRESS_OUTPUT=$(PROGRESS_OUTPUT) \
+	OUTPUT_IMAGE=$(OUTPUT_IMAGE) IMAGE_NAME=$(IMAGE_NAME)
 
-build: $(BASE_IMAGE_TAGS)
+.PHONY: all clean build test purge update push pull $(SUBDIRS) $(CUSTOM_TARGETS)
 
-test: $(addsuffix .test,$(BASE_IMAGE_TAGS))
+default: all
 
-push: $(addsuffix .push,$(BASE_IMAGE_TAGS))
+$(SUBDIRS):
+	$(MAKE) $(MAKEFILE_VARS) -C $@ all
 
-pull: $(addsuffix .pull,$(BASE_IMAGE_TAGS))
+all: $(addsuffix -all, $(SUBDIRS))
 
-.PHONY: $(BASE_IMAGE_TAGS)
-$(BASE_IMAGE_TAGS): $(Dockerfile)
-	$(DOCKER_EXEC) buildx build . --file $(DOCKERFILE) \
-		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@-$(IMAGE_VERSION)-$(DATE) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@-$(IMAGE_VERSION) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@ \
-		--memory $(BUILD_MEMORY) --cpu-shares $(BUILD_CPU_SHARES) --compress \
-		--build-arg BUILD_DATE=$(DATE) --build-arg DOCKER_IMAGE=$(BASE_IMAGE_REGISTRY)/$(BASE_IMAGE_NAME):$@ \
-		--build-arg IMAGE_VERSION=$(IMAGE_VERSION) --build-arg PROJECT_NAME=$(PROJECT_NAME) \
-		--build-arg VCS_REF=$(GIT_SHA) --build-arg VCS_URL=$(GIT_ORIGIN) \
-		--build-arg AUTHOR=$(AUTHOR) --build-arg URL=$(WEB_SITE) \
-		$(DOCKER_DRIVER)
+%.all:
+	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.all,%,$@) all
 
-.SECONDEXPANSION:
-$(addsuffix .build,$(BASE_IMAGE_TAGS)): $$(basename $$@)
+build: $(addsuffix .build, $(SUBDIRS))
 
-.SECONDEXPANSION:
-$(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	$(DOCKER_EXEC) run --rm \
-		--security-opt no-new-privileges --read-only --user $(UID):$(GID) \
-		--mount type=bind,source=$(shell pwd),target=/work --workdir /work \
-		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
-		--platform $(PLATFORMS) \
-		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
-		--name $(IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
-		$(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) \
-		$(TEST_CMD)
+%.build:
+	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.build,%,$@) build
 
-#--cap-drop ALL --cap-add SYS_PTRACE	  --device=/dev/kvm
+test: $(addsuffix .test, $(SUBDIRS))
 
-.SECONDEXPANSION:
-$(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	$(DOCKER_EXEC) run --rm -it \
-		--security-opt no-new-privileges --read-only --user $(UID):$(GID) \
-		--mount type=bind,source=$(shell pwd),target=/work --workdir /work \
-		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
-		--platform $(PLATFORMS) \
-		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
-		--name $(IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
-		$(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
+%.test:
+	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.test,%,$@) test
 
-.SECONDEXPANSION:
-$(addsuffix .push,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	@echo "Pushing $(REGISTRY)/$(OUTPUT_IMAGE)"
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
-#   $(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE) --all-tags
+clean: $(addsuffix .clean, $(SUBDIRS))
 
-.SECONDEXPANSION:
-$(addsuffix .pull,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	@echo "Pulling $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)" 
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
+%.clean:
+	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.clean,%,$@) clean
 
-.PHONY: clean
-clean:
-	@echo "Clean all untagged images"
-	$(DOCKER_EXEC) system prune -f
-#	$(DOCKER_EXEC) builder prune -f
+purge: $(addsuffix .purge, $(SUBDIRS))
 
-.PHONY: purge
-purge: clean
-	@echo "Remove all $(OUTPUT_IMAGE) images and tags"
-	$(DOCKER_EXEC) images --filter='reference=$(OUTPUT_IMAGE)' --format='{{.Repository}}:{{.Tag}}' | xargs -r $(DOCKER_EXEC) rmi -f
-#   	docker rmi -f $(docker images -f "dangling=true" -q) 2>/dev/null || true
+%.purge:
+	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.purge,%,$@) purge
 
-.PHONY: update
-update:
-#   Update all docker image
-	$(foreach tag,$(BASE_IMAGE_TAGS),$(DOCKER_EXEC) pull $(BASE_IMAGE_NAME):$(tag);)
-#   Update all submodules to latest
-	git submodule update --init --recursive --remote
+update: $(addsuffix .update, $(SUBDIRS))
 
-# https://github.com/linuxkit/linuxkit/tree/master/pkg/binfmt
-.PHONY: qemu
-qemu:
-	export DOCKER_CLI_EXPERIMENTAL=enabled
-	$(DOCKER_EXEC) run --rm --privileged multiarch/qemu-user-static --reset -p yes
-	$(DOCKER_EXEC) buildx create --name qemu_builder --driver docker-container --use
-	$(DOCKER_EXEC) buildx inspect --bootstrap
+%.update:
+	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.update,%,$@) update
 
-.PHONY: help
-help:
-	@echo "Usage: make [target]"
-	@echo ""
-	@echo "Targets:"
-	@echo "  all: Build and test all images"
-	@echo "  build: Build all images"
-	@echo "  test: Test all images"
-	@echo "  push: Push all images"
-	@echo "  pull: Pull all images"
-	@echo "  clean: Clean all untagged images"
-	@echo "  purge: Remove all images and tags"
-	@echo "  update: Update all images and submodules"
-	@echo "  qemu: Install qemu"
-	@echo "  help: Show this help message"
-	@echo ""
-	@echo "  All images: $(BASE_IMAGE_TAGS)"
-	@echo "  Sub targets: $(addsuffix .build,$(BASE_IMAGE_TAGS)) $(addsuffix .test,$(BASE_IMAGE_TAGS)) \
-	$(addsuffix .push,$(BASE_IMAGE_TAGS)) $(addsuffix .pull,$(BASE_IMAGE_TAGS))"
+push: $(addsuffix .push, $(SUBDIRS))
 
-.SECONDEXPANSION:
-$(addsuffix .save,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	@echo "Not implemented yet"
-#	docker save $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION) | xz -e7 -v -T0 > $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION).tar.xz
+%.push:
+	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.push,%,$@) push
 
-#   Bash version
-#	DOCKER_IMAGE=ben/ben:ben; install -Dv /dev/null "$DOCKER_IMAGE".tar.xz && docker pull "$DOCKER_IMAGE" && docker save "$DOCKER_IMAGE" | xz -e7 -v -T0 > "$DOCKER_IMAGE".tar.xz
+pull: $(addsuffix .pull, $(SUBDIRS))
 
-.SECONDEXPANSION:
-$(addsuffix .load,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	@echo "Not implemented yet"
-#	xz -v -d -k < $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION).tar.xz | docker load
+%.pull:
+	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.pull,%,$@) pull
+
+$(CUSTOM_TARGETS): $(addsuffix .$(CUSTOM_TARGETS), $(SUBDIRS))
+
+%.$(CUSTOM_TARGETS):
+	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.$(CUSTOM_TARGETS),%,$@) $(CUSTOM_TARGETS)

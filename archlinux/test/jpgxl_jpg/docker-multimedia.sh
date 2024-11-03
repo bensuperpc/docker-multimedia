@@ -5,7 +5,7 @@ REGISTRY="docker.io"
 IMAGE="bensuperpc/multimedia"
 TAG="archlinux-base"
 
-DOCKER_IMAGE="qt-multimedia-$(uuidgen)"
+DOCKER_IMAGE="multimedia-$(uuidgen)"
 
 CPUS="4"
 CPU_SHARES="1024"
