@@ -1,11 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-if [ "$#" -ne 2 ]; then
-    echo "Wrong number of parameters: ${#}, expected 2 parameters: <codec> <z>"
-    exit 1
-fi
-
 readonly codec=${1:-aom}
 readonly z=${2:-10}
 

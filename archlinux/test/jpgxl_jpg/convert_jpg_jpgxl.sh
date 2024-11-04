@@ -1,13 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-if [ "$#" -ne 2 ]; then
-    echo "Wrong number of parameters: ${#}, expected 2 parameters: <preset> <compression>"
-    exit 1
-fi
-
-readonly preset="$1"
-readonly compression="$2"
+readonly preset=${1:-picture}
+readonly compression=${2:-9}
 
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 

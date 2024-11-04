@@ -1,11 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-if [ "$#" -ne 1 ]; then
-    echo "Wrong number of parameters: ${#}, expected 1 parameters: <compression>"
-    exit 1
-fi
-
 readonly compression=${1:-9}
 
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
