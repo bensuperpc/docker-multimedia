@@ -5,6 +5,9 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     pacman -S --noconfirm \
 #   ffmpeg and video tools
     ffmpeg \
+    mlt \
+    multimon-ng \
+    nageru \
 #   AV1
     av1an \
     dav1d \
@@ -44,6 +47,8 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     openmpi \
     gvfs \
     mat2 \
+    ffms2 \
+    dsp \
 #   DVD
     libdvdcss \
 #   MPEG2
@@ -51,8 +56,9 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     # HDR    
     libultrahdr \
     # Sound    
-    sox \    
+    sox \
     vorbis-tools \
+    flac \
     # PDF   
     ghostscript \ 
     exiv2 \

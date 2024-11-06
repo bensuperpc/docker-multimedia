@@ -1,0 +1,5 @@
+veryslow
+slow
+medium
+fast
+veryfast

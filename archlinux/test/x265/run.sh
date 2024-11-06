@@ -1,12 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-readonly ARG1=${1:-preset_svtav1.txt}
-readonly ARG2=${2:-crf_svtav1.txt}
-readonly ARG3=${3:-option_svtav1.txt}
+readonly ARG1=${1:-preset_x265.txt}
+readonly ARG2=${2:-crf_x265.txt}
+readonly ARG3=${3:-option_x265.txt}
 readonly CPU_CORES=${3:-1}
 readonly DOCKER_SCRIPT=docker-multimedia.sh
-readonly CONVERT_SCRIPT=convert_svtav1.sh
+readonly CONVERT_SCRIPT=convert_x265.sh
 
 # Check if the files exist
 

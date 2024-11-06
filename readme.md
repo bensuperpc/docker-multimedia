@@ -4,9 +4,13 @@
 
 All multimedia apps (FFMPEG, ImageMagick, AV1 encoders ect...) in a docker container.
 
+## Table of contents
+
 ## Features
 
 - FFMPEG
+- Handbrake cli
+- ImageMagick
 
 ## Requirements
 
@@ -64,8 +68,8 @@ Now you can start the container, it will mount the current directory in the cont
 Optional: 
 - Add `-vf scale=1920:-1` to downscale the video to 1080p
 - Add `-g 60` to set the keyframe interval to 60 frames (every 1 seconds at 60fps), lower value increase quality but increase file size
-- Add `-tune 0` for subjective quality, 1 for objective quality (PSNR), default is 1
-- Add `-tune 0:film-grain=8` in svtav1-params to add film grain to the video (lower value for animation, higher value for live action with more grain)
+- Add `tune=0` in svtav1-params for subjective quality, 1 for objective quality (PSNR), default is 1
+- Add `tune=0:film-grain=8` in svtav1-params to add film grain to the video (lower value for animation, higher value for live action with more grain)
 - Add `-pix_fmt yuv420p10le` to set the pixel format to 10 bits or `-pix_fmt yuv420p` to set the pixel format to 8 bits
 
 With **AV1AN** (WIP):
@@ -93,7 +97,7 @@ Optional:
 ### Convert video with ffmpeg to h265 CRF (x265)
 
 ```bash
-ffmpeg -i input.mkv -y -c:v libx265 -crf 18 -preset slow -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+ffmpeg -i input.mkv -y -c:v libx265 -crf 18 -preset slower -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 ### Convert video with ffmpeg to h265 ABR 2 pass and down to 720p (x265)
@@ -120,16 +124,40 @@ ffmpeg -i input.mkv -y -c:v libx265 -preset medium -vf scale=1280:-1 -b:v 2000k 
 ./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi libvmaf -f null –
 ```
 
-### Cut video with ffmpeg withou re-encoding
+### Cut video with ffmpeg without re-encoding
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -ss 125 -t 75 -map_metadata 0 -vcodec copy -acodec copy out.mkv
+./docker-multimedia.sh ffmpeg -i input.mp4 -ss 125 -t 75 -copyts -map_metadata 0 -vcodec copy -acodec copy out.mkv
+```
+
+### Increase audio volume with ffmpeg
+
+```bash
+./docker-multimedia.sh ffmpeg -i input.mp4 -af "volume=2.0" -c:v copy -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+```
+
+### Import watermark with ffmpeg
+
+```bash
+./docker-multimedia.sh ffmpeg -i input.mp4 -i watermark.png -filter_complex "overlay=10:10" -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+```
+
+### Change video speed with ffmpeg
+
+```bash
+./docker-multimedia.sh ffmpeg -i input.mp4 -vf "setpts=0.5*PTS" -af "atempo=2.0" -c:v libx264 -c:a aac -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+```
+
+### Change video FPS with ffmpeg
+
+```bash
+./docker-multimedia.sh ffmpeg -i input.mp4 -filter:v fps=fps=30 -c:v libx264 -c:a aac -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
 ```
 
 ### Convert images png to webp (lossless)
 
 ```bash
-./docker-multimedia.sh find . -name "*.png" | parallel -eta cwebp -metadata all -lossless -exact -z 7 "{}" -o "{.}.webp" && find . -name "*.png" -exec sh -c 'touch -r "${0%.*}.png" "${0%.*}.webp"' "{}" ';'
+./docker-multimedia.sh find . -name "*.png" | parallel -eta cwebp -metadata all -lossless -exact -z 9 "{}" -o "{.}.webp" && find . -name "*.png" -exec sh -c 'touch -r "${0%.*}.png" "${0%.*}.webp"' "{}" ';'
 ```
 
 ### Get difference between two images
@@ -137,6 +165,20 @@ ffmpeg -i input.mkv -y -c:v libx265 -preset medium -vf scale=1280:-1 -b:v 2000k 
 ```bash
 compare -metric AE input1.png input2.webp null:
 ```
+
+Or with ImageMagick
+
+```bash
+magick input1.png ppm:- | magick input2.webp ppm:- | diff -q - <(magick input2.webp ppm:-)
+```
+
+### Generate spectrogram with sox
+
+```bash
+./docker-multimedia.sh sox input_audio.flac  -n spectrogram -o output_spectrogram.png
+```
+
+*Add `-t flac` if the input file is not recognized*
 
 ## Update submodules and base archlinux image
 
@@ -150,6 +192,7 @@ make update
 - [ImageMagick](https://imagemagick.org/)
 - [Simple SVT-AV1 Beginner Guide](https://gist.github.com/BlueSwordM/86dfcb6ab38a93a524472a0cbe4c4100)
 - [CommonQuestions SVT-AV1](https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/CommonQuestions.md)
+- [Vintage look with ffmpeg](https://ottverse.com/create-vintage-videos-using-ffmpeg/)
 
 ## License
 
