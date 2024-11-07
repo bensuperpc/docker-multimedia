@@ -25,11 +25,11 @@ All multimedia apps (FFMPEG, ImageMagick, AV1 encoders ect...) in a docker conta
 ### Hardware requirements
 
 | Hardware | Minimum | Recommended |
-| ------ | ------ | ------ |
-| CPU | 1 cores | 4 cores |
-| Instruction set (x86) | x86-64-v1 | x86-64-v3 |
+| :------: | :------: | :------: |
+| CPU | 2c/2t | 8c/16t |
+| Instruction set (x86) | x86-64-v2 | x86-64-v3 |
 | Instruction set (ARM) | armv8 | armv8 |
-| RAM | 1 GB | 16 GB |
+| RAM | 21 GB | 32 GB |
 | GPU | - | Hardware acceleration |
 | Disk space | 1 GB | 10 GB |
 | Internet | 10 Mbps | 100 Mbps |
@@ -40,119 +40,165 @@ All multimedia apps (FFMPEG, ImageMagick, AV1 encoders ect...) in a docker conta
 Clone this repository
 
 ```bash
-git clone https://github.com/bensuperpc/docker-multimedia.git
+git clone --recurse-submodules https://github.com/bensuperpc/docker-multimedia.git
 ```
 
 ### Build with docker
 
 ```bash
-make base
+make archlinux
 ```
 
 Test the container
 
 ```bash
-make base.test
+make archlinux.test
 ```
 
 ## Start the container
 
 Now you can start the container, it will mount the current directory in the container.
 
-### Convert video with ffmpeg to AV1 CRF (SVT-AV1)
-
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 4 -crf 18 -svtav1-params tune=0 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh <command>
 ```
 
-Optional: 
-- Add `-vf scale=1920:-1` to downscale the video to 1080p
-- Add `-g 60` to set the keyframe interval to 60 frames (every 1 seconds at 60fps), lower value increase quality but increase file size
-- Add `tune=0` in svtav1-params for subjective quality, 1 for objective quality (PSNR), default is 1
-- Add `tune=0:film-grain=8` in svtav1-params to add film grain to the video (lower value for animation, higher value for live action with more grain)
-- Add `-pix_fmt yuv420p10le` to set the pixel format to 10 bits or `-pix_fmt yuv420p` to set the pixel format to 8 bits
-
-With **AV1AN** (WIP):
+## Update submodules and base archlinux image
 
 ```bash
-./docker-multimedia.sh av1an -i input.mkv --encoder svt-av1 --video-params "--rc 0 --crf 18 --preset 4 --tune 0" --audio-params "-c:a copy" -o output.mkv
+make update
+```
+
+## Video commands examples
+
+### FFMPEG options
+
+| Option | default | Example | Description |
+| :------: | :------: | :------: | :------: |
+| -vf | - | -vf scale=1920:-1 | Downscale the video to 1080p |
+| -g | ? | -g 60 | Set the keyframe interval of x frames, lower value increase quality but increase file size |
+| -pix_fmt | Depends on source | -pix_fmt yuv420p | Set the pixel format, yuv420p for 8-bit, yuv420p10le for 10-bit ect... |
+| -crf | - | - | Constant Rate Factor, **options depend on the encoder** |
+| -preset | - | - | Set the encoding speed, **options depend on the encoder** |
+| -tune | - | - | Set the encoding tune, **options depend on the encoder** |
+
+### Convert video to AV1 CRF (SVT-AV1)
+
+This table shows the most common options for SVT-AV1, like the preset, crf, and svtav1-params.
+
+**For svtav1-params each option is separated by a colon `:`, option and value are separated by `=`, like `tune=0:enable-qm=1:qm-min=0`.**
+
+| Option | default | Min/Max | Example | Description |
+| :------: | :------: | :------: | :------: | :------: |
+| -preset | 4 | -preset 4 | 0-12 | 0 for slowest, 12 for fastest encoding |
+| -crf | 18 | -crf 30 | 0-63 | Constant Rate Factor, lower value increase quality |
+| -svtav1-params | - | - | -svtav1-params tune=0:enable-qm=1 | SVT-AV1 specific options |
+| tune | 1 | 0-1 | -svtav1-params tune=0 | 0 for subjective quality, 1 for objective quality (PSNR) |
+| enable-qm | 0 | 0-1 | -svtav1-params enable-qm=1 | Enable quantization matrices |
+| qm-min | 8 | 0-15 | -svtav1-params qm-min=0 | Minimum quantization matrix |
+| qm-max | 15 | 0-15 | -svtav1-params qm-max=10 | Maximum quantization matrix |
+| aq-mode | 0 | 0-2 | -svtav1-params aq-mode=2 | Adaptive quantization mode |
+| enable-overlays | 0 | 0-1 | -svtav1-params enable-overlays=1 | Enable overlays |
+| film-grain | 0 | 0-12 | -svtav1-params film-grain=8 | Add film grain to the video, not worth if |
+
+More information about the options can be found in the [SVT-AV1 documentation](
+https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Parameters.md?ref_type=heads)
+
+Example of encoding CRF for very high quality:
+
+```bash
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 2 -crf 16 -svtav1-params tune=0:enable-qm=1:qm-min=0:qm-max=12 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+```
+
+With **AV1AN** (WIP), it usefull if you have move than 16 threads, SVT-AV1 is not well optimized for over 16 threads, AV11AN encode the video in parallel **per scene**.
+
+```bash
+./docker-multimedia.sh av1an -i input.mkv --encoder svt-av1 --video-params "--rc 0 --crf 16 --preset 2 --tune 0 --enable-qm=1 --qm-min=0 --qm-max=12" --audio-params "-c:a copy" -o output.mkv
 ```
 
 Optional:
 - Add `--video-filter "scale=1920:-1"` to downscale the video to 1080p
 - Add ` --keyint 60` in video-params to set the keyframe interval to 60 frames (every 1 seconds at 60fps), lower value increase quality but increase file size
 
-### Convert video with ffmpeg to AV1 CRF(AOM)
+### Convert video to AV1 CRF(AOM)
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i input.mkv -c:v libaom-av1 -crf 18 -cpu-used 3 -row-mt 1 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
-### Convert video with ffmpeg to AV1 CRF (Rav1e)
+### Convert video to AV1 CRF (Rav1e)
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i input.mkv -y -c:v librav1e -crf 18 -speed 3 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
-### Convert video with ffmpeg to h265 CRF (x265)
+### Convert video to h265 CRF (x265)
 
 ```bash
 ffmpeg -i input.mkv -y -c:v libx265 -crf 18 -preset slower -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
-### Convert video with ffmpeg to h265 ABR 2 pass and down to 720p (x265)
+### Convert video to h265 ABR 2 pass and scale to 720p (x265)
 
 ```bash
-ffmpeg -i input.mkv -y -c:v libx265 -preset medium -vf scale=1280:-1 -b:v 2000k -minrate 500k -maxrate 4000k -bufsize 8000k -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -preset medium -vf scale=1280:-1 -c:v libx265 -b:v 2000k -minrate 500k -maxrate 4000k -bufsize 8000k -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+ffmpeg -i input.mkv -y -c:v libx265 -preset slow -vf scale=1280:-1 -b:v 2000k -minrate 500k -maxrate 6000k -bufsize 12000k -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -preset slow -vf scale=1280:-1 -c:v libx265 -b:v 2000k -minrate 500k -maxrate 6000k -bufsize 12000k -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
-### Get SSIM with ffmpeg
+### Get SSIM
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi ssim -f null –
 ```
 
-### Get PSNR with ffmpeg
+### Get PSNR
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi psnr -f null –
 ```
 
-### Get VMAF with ffmpeg
+### Get VMAF
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi libvmaf -f null –
 ```
 
-### Cut video with ffmpeg without re-encoding
+### Cut video without re-encoding
+
+Extract from 125s to 200s
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i input.mp4 -ss 125 -t 75 -copyts -map_metadata 0 -vcodec copy -acodec copy out.mkv
 ```
 
-### Increase audio volume with ffmpeg
+Extract from 125s to 150s
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -af "volume=2.0" -c:v copy -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+./docker-multimedia.sh ffmpeg -i input.mp4 -ss 125 -to 150 -c copy -copyts -map_metadata 0 -vcodec copy -acodec copy out.mkv
 ```
 
-### Import watermark with ffmpeg
+### Import watermark
+
+Import watermark at 10:10 from the top left corner
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i input.mp4 -i watermark.png -filter_complex "overlay=10:10" -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
 ```
 
-### Change video speed with ffmpeg
+### Change video speed
+
+Speed up the video by 2x
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i input.mp4 -vf "setpts=0.5*PTS" -af "atempo=2.0" -c:v libx264 -c:a aac -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
 ```
 
-### Change video FPS with ffmpeg
+Change the video frame rate to 30fps (2x slower if the original is 60fps)
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i input.mp4 -filter:v fps=fps=30 -c:v libx264 -c:a aac -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
 ```
+
+## Image commands examples
 
 ### Convert images png to webp (lossless)
 
@@ -163,27 +209,52 @@ ffmpeg -i input.mkv -y -c:v libx265 -preset medium -vf scale=1280:-1 -b:v 2000k 
 ### Get difference between two images
 
 ```bash
-compare -metric AE input1.png input2.webp null:
+./docker-multimedia.sh compare -metric AE input1.png input2.webp null:
 ```
 
 Or with ImageMagick
 
 ```bash
-magick input1.png ppm:- | magick input2.webp ppm:- | diff -q - <(magick input2.webp ppm:-)
+./docker-multimedia.sh magick input1.png ppm:- | magick input2.webp ppm:- | diff -q - <(magick input2.webp ppm:-)
 ```
 
-### Generate spectrogram with sox
+## Audio commands examples
+
+### Generate audio spectrogram with sox
+
+You can generate a spectrogram with sox, for example with a flac file to detect "fake" flac files.
 
 ```bash
-./docker-multimedia.sh sox input_audio.flac  -n spectrogram -o output_spectrogram.png
+./docker-multimedia.sh sox input_audio.flac -n spectrogram -o output_spectrogram.png
 ```
 
 *Add `-t flac` if the input file is not recognized*
 
-## Update submodules and base archlinux image
+### Increase audio volume without re-encoding
 
 ```bash
-make update
+./docker-multimedia.sh ffmpeg -i input.mp4 -af "volume=2.0" -c:v copy -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+```
+
+### Convert audio
+
+| Audio lib | Max bitrate | Extension |
+| :------: | :------: | :------: |
+| libmp3lame | 320kbps | mp3 |
+| aac | 250kbps | m4a |
+| libopus | 250kbps | opus |
+| flac | lossless | flac |
+
+Convert audio to mp3
+
+```bash
+./docker-multimedia.sh ffmpeg -i input.flac -c:a libmp3lame -b:a 320k output.mp3
+```
+
+Convert audio to lossy or "fake" flac
+
+```bash
+./docker-multimedia.sh ffmpeg -i output.mp3 output.flac
 ```
 
 ## Useful links
@@ -193,7 +264,10 @@ make update
 - [Simple SVT-AV1 Beginner Guide](https://gist.github.com/BlueSwordM/86dfcb6ab38a93a524472a0cbe4c4100)
 - [CommonQuestions SVT-AV1](https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/CommonQuestions.md)
 - [Vintage look with ffmpeg](https://ottverse.com/create-vintage-videos-using-ffmpeg/)
+- [FFMPEG filters](https://ffmpeg.org/ffmpeg-filters.html)
+- [FFMPEG Lame](https://trac.ffmpeg.org/wiki/Encode/MP3)
+- [Encoding Animation with SVT-AV1: A Deep Dive](https://wiki.x266.mov/blog/svt-av1-deep-dive)
 
 ## License
 
-MIT
+[MIT](LICENSE)
