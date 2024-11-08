@@ -81,6 +81,16 @@ make update
 | -crf | - | - | Constant Rate Factor, **options depend on the encoder** |
 | -preset | - | - | Set the encoding speed, **options depend on the encoder** |
 | -tune | - | - | Set the encoding tune, **options depend on the encoder** |
+| -c:v | - | -c:v libx265 | Set the video codec, **options depend on installed codecs** |
+| -c:a | - | -c:a copy | Set the audio codec, **options depend on installed codecs** |
+| -c:s | - | -c:s copy | Set the subtitle codec, **options depend on installed codecs** |
+| -map | - | -map 0 | Map the input stream to the output |
+| -map_metadata | - | -map_metadata 0 | Map the metadata to the output |
+| -map_chapters | - | -map_chapters 0 | Map the chapters to the output |
+| -loglevel | - | -loglevel error | Set the log level, error, warning, info, verbose, debug, trace |
+| -hide_banner | - | -hide_banner | Hide the banner |
+| -y | - | -y | Overwrite output files without asking |
+
 
 ### Convert video to AV1 CRF (SVT-AV1)
 
@@ -97,23 +107,30 @@ This table shows the most common options for SVT-AV1, like the preset, crf, and 
 | enable-qm | 0 | 0-1 | -svtav1-params enable-qm=1 | Enable quantization matrices |
 | qm-min | 8 | 0-15 | -svtav1-params qm-min=0 | Minimum quantization matrix |
 | qm-max | 15 | 0-15 | -svtav1-params qm-max=10 | Maximum quantization matrix |
-| aq-mode | 0 | 0-2 | -svtav1-params aq-mode=2 | Adaptive quantization mode |
+| aq-mode | 2 | 0-2 | -svtav1-params aq-mode=2 | Adaptive quantization mode |
 | enable-overlays | 0 | 0-1 | -svtav1-params enable-overlays=1 | Enable overlays |
-| film-grain | 0 | 0-12 | -svtav1-params film-grain=8 | Add film grain to the video, not worth if |
+| film-grain | 0 | 0-12 | -svtav1-params film-grain=8 | Add film grain to the video |
 
 More information about the options can be found in the [SVT-AV1 documentation](
 https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Parameters.md?ref_type=heads)
 
-Example of encoding CRF for very high quality:
+Example of encoding CRF for very high quality (Maybe little overkill, preset 4 and crf 20 is a good start for 1080p).
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 2 -crf 16 -svtav1-params tune=0:enable-qm=1:qm-min=0:qm-max=12 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 1 -crf 14 -svtav1-params tune=0:enable-qm=1:qm-min=0:qm-max=8 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
+
+- **-preset 1**: i recommend to use 4-6 for good quality and speed, 3 or lower for better quality but it **really** slow (~2x slower per lower step, for minimal gain).
+- **-crf 14**: CRF 20-24 is a good start, 14 for very high quality bit bigger file size.
+- **tune=0**: Enable subjective quality, 1 for objective quality (PSNR).
+- **enable-qm=1**: Enable quantization matrices.
+- **qm-min=0**: Minimum quantization matrix, reduce it for lower compression in certain zones, the *8* default is little too high, 0-4 is a good start.
+- **qm-max=8**: Maximum quantization matrix, increase it for higher compression in certain zones, the *15* default is little too high, 8-12 is a good start.
 
 With **AV1AN** (WIP), it usefull if you have move than 16 threads, SVT-AV1 is not well optimized for over 16 threads, AV11AN encode the video in parallel **per scene**.
 
 ```bash
-./docker-multimedia.sh av1an -i input.mkv --encoder svt-av1 --video-params "--rc 0 --crf 16 --preset 2 --tune 0 --enable-qm=1 --qm-min=0 --qm-max=12" --audio-params "-c:a copy" -o output.mkv
+./docker-multimedia.sh av1an -i input.mkv --encoder svt-av1 --video-params "--rc 0 --crf 16 --preset 1 --tune 0 --enable-qm=1 --qm-min=0 --qm-max=8" --audio-params "-c:a copy" -o output.mkv
 ```
 
 Optional:
@@ -150,11 +167,21 @@ ffmpeg -i input.mkv -y -c:v libx265 -preset slow -vf scale=1280:-1 -b:v 2000k -m
 ./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi ssim -f null –
 ```
 
+SSIM Y: For luma (Y) channel, 0-1, 1 is perfect match
+SSIM U: For chrominance (U) channel, 0-1, 1 is perfect match
+SSIM V: For chrominance (V) channel, 0-1, 1 is perfect match
+SSIM All: Average of YUV, 0-1, 1 is perfect match
+
 ### Get PSNR
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi psnr -f null –
 ```
+
+PSNR Y: For luma (Y) channel, in dB higher is better
+PSNR U: For chrominance (U) channel, in dB higher is better
+PSNR V: For chrominance (V) channel, in dB higher is better
+PSNR All: Average of YUV, in dB higher is better
 
 ### Get VMAF
 
