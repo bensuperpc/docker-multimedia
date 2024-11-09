@@ -2,6 +2,8 @@ builds/*
 sstate-cache/*
 downloads/*
 .vscode/settings.json
+*.log
+# Image files
 *.png
 *.jpg
 *.jpeg
@@ -10,3 +12,8 @@ downloads/*
 *.svg
 *.bmp
 *.jxl
+# Video files
+*.mp4
+*.webm
+*.mkv
+*.flv

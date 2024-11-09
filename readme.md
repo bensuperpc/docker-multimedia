@@ -87,6 +87,7 @@ make update
 | -map | - | -map 0 | Map the input stream to the output |
 | -map_metadata | - | -map_metadata 0 | Map the metadata to the output |
 | -map_chapters | - | -map_chapters 0 | Map the chapters to the output |
+| -fps_mode | auto | -fps_mode passthrough | Set the frame rate mode, passthrough, cfr, vfr, auto |
 | -loglevel | - | -loglevel error | Set the log level, error, warning, info, verbose, debug, trace |
 | -hide_banner | - | -hide_banner | Hide the banner |
 | -y | - | -y | Overwrite output files without asking |
@@ -127,13 +128,19 @@ Example of encoding CRF for very high quality (Maybe little overkill, preset 4 a
 - **qm-min=0**: Minimum quantization matrix, reduce it for lower compression in certain zones, the *8* default is little too high, 0-4 is a good start.
 - **qm-max=8**: Maximum quantization matrix, increase it for higher compression in certain zones, the *15* default is little too high, 8-12 is a good start.
 
-With **AV1AN** (WIP), it usefull if you have move than 16 threads, SVT-AV1 is not well optimized for over 16 threads, AV11AN encode the video in parallel **per scene**.
+With **AV1AN**, it usefull if you have move than 16 threads, SVT-AV1 is not well optimized for over 16 threads, AV11AN encode the video in parallel **per scene**.
 
 ```bash
-./docker-multimedia.sh av1an -i input.mkv --encoder svt-av1 --video-params "--rc 0 --crf 16 --preset 1 --tune 0 --enable-qm=1 --qm-min=0 --qm-max=8" --audio-params "-c:a copy" -o output.mkv
+./docker-multimedia.sh av1an -i input.mkv --encoder svt-av1 --video-params "--rc 0 --crf 16 --preset 1 --tune 0 --enable-qm=1 --qm-min=0 --qm-max=8" --audio-params "-c:a copy" -o temp_output.mkv
 ```
 
-Optional:
+Copy metadata and chapters:
+
+```bash
+ffmpeg -i temp_output.mkv -i input.mkv -map 0 -map_metadata 1 -map_chapters 1 -c copy output.mkv
+```
+
+Optional for AV1AN:
 - Add `--video-filter "scale=1920:-1"` to downscale the video to 1080p
 - Add ` --keyint 60` in video-params to set the keyframe interval to 60 frames (every 1 seconds at 60fps), lower value increase quality but increase file size
 
@@ -163,30 +170,38 @@ ffmpeg -i input.mkv -y -c:v libx265 -preset slow -vf scale=1280:-1 -b:v 2000k -m
 
 ### Get SSIM
 
-```bash
-./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi ssim -f null –
-```
-
 SSIM Y: For luma (Y) channel, 0-1, 1 is perfect match
 SSIM U: For chrominance (U) channel, 0-1, 1 is perfect match
 SSIM V: For chrominance (V) channel, 0-1, 1 is perfect match
 SSIM All: Average of YUV, 0-1, 1 is perfect match
 
-### Get PSNR
-
 ```bash
-./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi psnr -f null –
+./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi ssim -f null –
 ```
+
+### Get PSNR
 
 PSNR Y: For luma (Y) channel, in dB higher is better
 PSNR U: For chrominance (U) channel, in dB higher is better
 PSNR V: For chrominance (V) channel, in dB higher is better
 PSNR All: Average of YUV, in dB higher is better
 
+```bash
+./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi psnr -f null –
+```
+
 ### Get VMAF
+
+VMAF score, higher is better
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i output.mkv -i input.mkv -lavfi libvmaf -f null –
+```
+
+Output into a json file
+
+```bash
+ffmpeg -i video1.mp4 -i video2.mp4 -lavfi libvmaf="log_path=vmaf.json:log_fmt=json" -f null -
 ```
 
 ### Cut video without re-encoding
@@ -224,6 +239,27 @@ Change the video frame rate to 30fps (2x slower if the original is 60fps)
 ```bash
 ./docker-multimedia.sh ffmpeg -i input.mp4 -filter:v fps=fps=30 -c:v libx264 -c:a aac -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
 ```
+
+### Convert video to gif
+
+```bash
+./docker-multimedia.sh ffmpeg -i input.mp4 -vf "fps=10,scale=320:-1:flags=lanczos" -c:v gif -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.gif
+```
+
+### Add vintage look effect to video and play it with ffplay
+
+```bash
+ffplay -i input.mp4 -vf "curves=vintage,noise=alls=30:allf=t+u,hue=s=0.7,eq=contrast=0.85:brightness=-0.1:saturation=0.7,gblur=sigma=1.5,colorbalance=rm=0.2:gm=0.1:bm=-0.2,vignette"
+```
+
+- **curves=vintage**: Add a vintage look
+- **noise=alls=30:allf=t+u**: Add noise
+- **hue=s=0.7**: Reduces saturation
+- **eq=contrast=0.85:brightness=-0.01:saturation=0.7**: Adjust contrast, brightness and saturation
+- **gblur=sigma=1.5**: Add a gaussian blur
+- **colorbalance=rm=0.2:gm=0.1:bm=-0.2**: Adjust color balance to sepia tone
+- **vignette**: Add a vignette
+
 
 ## Image commands examples
 
