@@ -12,7 +12,6 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     av1an \
     dav1d \
     rav1e \
-    av1an \
     svt-av1 \
     libheif \
     libavif \

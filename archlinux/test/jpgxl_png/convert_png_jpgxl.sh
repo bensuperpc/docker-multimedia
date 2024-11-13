@@ -9,14 +9,14 @@ function convert_to_jxl {
     local file="$1"
     local output_file="${file%.*}_c${compression}_lossless.jxl"
 
-    # Convert the image to JPEG XL format with lossless compression
+    # Convert the image to JPEG XL format with lossless compression (--quality 100 = --distance 0.0)
     cjxl --quiet --num_threads 1 --effort "$compression" --distance 0.0 --brotli_effort 11 "$file" "$output_file"
 
     # Copy the timestamp from the original file
     touch -r "$file" "$output_file"
 
     # Copy metadata from the original file
-    exiftool -TagsFromFile "$file" "$output_file"
+    exiftool -m -TagsFromFile "$file"  -All:All --CreatorTool --MetadataDate -XMPToolkit= "$output_file"
 
     # Check if the images are identical
     if ! compare -metric AE "$file" "$output_file" null: >/dev/null 2>&1; then

@@ -34,7 +34,6 @@ All multimedia apps (FFMPEG, ImageMagick, AV1 encoders ect...) in a docker conta
 | Disk space | 1 GB | 10 GB |
 | Internet | 10 Mbps | 100 Mbps |
 
-
 ## How to use docker-multimedia
 
 Clone this repository
@@ -92,7 +91,6 @@ make update
 | -hide_banner | - | -hide_banner | Hide the banner |
 | -y | - | -y | Overwrite output files without asking |
 
-
 ### Convert video to AV1 CRF (SVT-AV1)
 
 This table shows the most common options for SVT-AV1, like the preset, crf, and svtav1-params.
@@ -125,8 +123,8 @@ Example of encoding CRF for very high quality (Maybe little overkill, preset 4 a
 - **-crf 14**: CRF 20-24 is a good start, 14 for very high quality bit bigger file size.
 - **tune=0**: Enable subjective quality, 1 for objective quality (PSNR).
 - **enable-qm=1**: Enable quantization matrices.
-- **qm-min=0**: Minimum quantization matrix, reduce it for lower compression in certain zones, the *8* default is little too high, 0-4 is a good start.
-- **qm-max=8**: Maximum quantization matrix, increase it for higher compression in certain zones, the *15* default is little too high, 8-12 is a good start.
+- **qm-min=0**: Minimum quantization matrix, reduce it for lower compression in certain zones, the _8_ default is little too high, 0-4 is a good start.
+- **qm-max=8**: Maximum quantization matrix, increase it for higher compression in certain zones, the _15_ default is little too high, 8-12 is a good start.
 
 With **AV1AN**, it usefull if you have move than 16 threads, SVT-AV1 is not well optimized for over 16 threads, AV11AN encode the video in parallel **per scene**.
 
@@ -141,8 +139,9 @@ ffmpeg -i temp_output.mkv -i input.mkv -map 0 -map_metadata 1 -map_chapters 1 -c
 ```
 
 Optional for AV1AN:
+
 - Add `--video-filter "scale=1920:-1"` to downscale the video to 1080p
-- Add ` --keyint 60` in video-params to set the keyframe interval to 60 frames (every 1 seconds at 60fps), lower value increase quality but increase file size
+- Add `--keyint 60` in video-params to set the keyframe interval to 60 frames (every 1 seconds at 60fps), lower value increase quality but increase file size
 
 ### Convert video to AV1 CRF(AOM)
 
@@ -260,7 +259,6 @@ ffplay -i input.mp4 -vf "curves=vintage,noise=alls=30:allf=t+u,hue=s=0.7,eq=cont
 - **colorbalance=rm=0.2:gm=0.1:bm=-0.2**: Adjust color balance to sepia tone
 - **vignette**: Add a vignette
 
-
 ## Image commands examples
 
 ### Convert images png to webp (lossless)
@@ -281,7 +279,7 @@ Or with ImageMagick
 ./docker-multimedia.sh magick input1.png ppm:- | magick input2.webp ppm:- | diff -q - <(magick input2.webp ppm:-)
 ```
 
-## Audio commands examples
+##  Audio commands examples
 
 ### Generate audio spectrogram with sox
 
@@ -291,7 +289,7 @@ You can generate a spectrogram with sox, for example with a flac file to detect 
 ./docker-multimedia.sh sox input_audio.flac -n spectrogram -o output_spectrogram.png
 ```
 
-*Add `-t flac` if the input file is not recognized*
+_Add `-t flac` if the input file is not recognized as flac._
 
 ### Increase audio volume without re-encoding
 
@@ -318,6 +316,12 @@ Convert audio to lossy or "fake" flac
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i output.mp3 output.flac
+```
+
+Remove noise from audio
+
+```bash
+./docker-multimedia.sh ffmpeg -i input.mp3 -af "highpass=f=200, lowpass=f=3000" output.mp3
 ```
 
 ## Useful links
