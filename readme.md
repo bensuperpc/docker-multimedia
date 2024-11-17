@@ -167,6 +167,12 @@ ffmpeg -i input.mkv -y -c:v libx265 -crf 18 -preset slower -c:a copy -c:s copy -
 ffmpeg -i input.mkv -y -c:v libx265 -preset slow -vf scale=1280:-1 -b:v 2000k -minrate 500k -maxrate 6000k -bufsize 12000k -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -preset slow -vf scale=1280:-1 -c:v libx265 -b:v 2000k -minrate 500k -maxrate 6000k -bufsize 12000k -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
+### Convert video to h264 CRF (x264)
+
+```bash
+ffmpeg -i input.mkv -c:v libx264 -crf 26 -preset slow -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+```
+
 ### Get SSIM
 
 SSIM Y: For luma (Y) channel, 0-1, 1 is perfect match
@@ -230,19 +236,19 @@ Import watermark at 10:10 from the top left corner
 Speed up the video by 2x
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -vf "setpts=0.5*PTS" -af "atempo=2.0" -c:v libx264 -c:a aac -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+./docker-multimedia.sh ffmpeg -i input.mp4 -vf "setpts=0.5*PTS" -af "atempo=2.0" -map_metadata 0 output.mp4
 ```
 
 Change the video frame rate to 30fps (2x slower if the original is 60fps)
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -filter:v fps=fps=30 -c:v libx264 -c:a aac -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mp4
+./docker-multimedia.sh ffmpeg -i input.mp4 -filter:v fps=fps=30 -map_metadata 0 output.mp4
 ```
 
 ### Convert video to gif
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mp4 -vf "fps=10,scale=320:-1:flags=lanczos" -c:v gif -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.gif
+./docker-multimedia.sh ffmpeg -i input.mp4 -vf "fps=24,scale=480:-1:flags=lanczos" -c:v gif -map_metadata 0 output.gif
 ```
 
 ### Add vintage look effect to video and play it with ffplay

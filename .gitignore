@@ -12,6 +12,7 @@ downloads/*
 *.svg
 *.bmp
 *.jxl
+*.avif
 # Video files
 *.mp4
 *.webm
