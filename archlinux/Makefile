@@ -146,6 +146,10 @@ purge: clean
 	$(DOCKER_EXEC) images --filter='reference=$(OUTPUT_IMAGE)' --format='{{.Repository}}:{{.Tag}}' | xargs -r $(DOCKER_EXEC) rmi -f
 #   	docker rmi -f $(docker images -f "dangling=true" -q) 2>/dev/null || true
 
+.SECONDEXPANSION:
+$(addsuffix .dive,$(BASE_IMAGE_TAGS)): $$(basename $$@)
+	dive $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)
+
 .PHONY: update
 update:
 #   Update all docker image

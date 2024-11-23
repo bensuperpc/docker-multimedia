@@ -66,6 +66,18 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     mediainfo \    
     ffmpegthumbnailer \    
     mkvtoolnix-cli \
+#   yt-dlp
+    yt-dlp \
+    atomicparsley \
+    aria2 \
+    python-mutagen \
+    python-pycryptodome \
+    python-pycryptodomex \
+    python-pyxattr \
+    python-secretstorage \
+    python-websockets \
+    python-xattr \
+    rtmpdump \
 #   Compress tools
     xz \
     gzip \

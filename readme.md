@@ -330,6 +330,14 @@ Remove noise from audio
 ./docker-multimedia.sh ffmpeg -i input.mp3 -af "highpass=f=200, lowpass=f=3000" output.mp3
 ```
 
+## Metadata commands examples
+
+### Get metadata from audio or video file
+
+```bash
+./docker-multimedia.sh ffprobe -v quiet -print_format json -show_format -show_streams input.mp4
+```
+
 ## Useful links
 
 - [FFMPEG](https://ffmpeg.org/)
