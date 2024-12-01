@@ -338,6 +338,16 @@ Remove noise from audio
 ./docker-multimedia.sh ffprobe -v quiet -print_format json -show_format -show_streams input.mp4
 ```
 
+### Youtube-dlp
+
+Download audio from youtube video without re-encoding:
+
+```bash
+./docker-multimedia.sh yt-dlp -f bestaudio --extract-audio --embed-thumbnail --embed-metadata --embed-chapters --output "%(title)s.%(ext)s" "https://www.youtube.com/watch?v=video_playlist_id"
+```
+
+```
+
 ## Useful links
 
 - [FFMPEG](https://ffmpeg.org/)
