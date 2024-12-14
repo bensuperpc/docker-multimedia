@@ -15,8 +15,6 @@ SUBDIRS ?= debian ubuntu fedora archlinux
 
 # Base image
 BASE_IMAGE_REGISTRY ?= docker.io
-BASE_IMAGE_NAME ?= archlinux
-BASE_IMAGE_TAGS ?= base
 
 # Output docker image
 PROJECT_NAME ?= multimedia
