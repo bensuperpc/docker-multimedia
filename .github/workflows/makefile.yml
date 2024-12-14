@@ -30,13 +30,13 @@ jobs:
 #      - name: Install dependencies
 #        run: sudo apt-get update && sudo apt-get install 
       - name: Build
-        run: make ${{ matrix.image }}
+        run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}
       - name: Test the image
-        run: CPUS=2.0 make ${{ matrix.image }}.test
+        run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}.test
       - name: clean the image
-        run: make ${{ matrix.image }}.clean
+        run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}.clean
       - name: purge the image
-        run: make ${{ matrix.image }}.purge
+        run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}.purge
 #      - name: "Push to hub.docker.com"
 #        if: github.ref == 'refs/heads/main'
 #        run: |
