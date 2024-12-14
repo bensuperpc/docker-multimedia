@@ -84,6 +84,7 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     bzip2 \
     tar \    
     zstd \
+    bash-completion \
 #   vulkan-driver
 #   Drivers intel
 #   intel-media-sdk \
@@ -132,7 +133,14 @@ VOLUME [ "/work" ]
 WORKDIR /work
 
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN chmod 755 /entrypoint.sh && chown root:root /entrypoint.sh
 
-ENTRYPOINT [ "/entrypoint.sh" ]
-CMD [ "ffmpeg", "-version" ]
+ARG USERNAME=user
+RUN useradd -m "${USERNAME}"
+# Add color to bash
+RUN echo PS1="'\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\] '" >> "/home/${USERNAME}/.bashrc"
+USER ${USERNAME}
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/bin/bash", "-l"]
+

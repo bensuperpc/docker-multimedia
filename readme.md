@@ -346,6 +346,10 @@ Download audio from youtube video without re-encoding:
 ./docker-multimedia.sh yt-dlp -f bestaudio --extract-audio --embed-thumbnail --embed-metadata --embed-chapters --output "%(title)s.%(ext)s" "https://www.youtube.com/watch?v=video_playlist_id"
 ```
 
+Download video from youtube video without re-encoding:
+
+```bash
+./docker-multimedia.sh yt-dlp -f "bestvideo+(251/mergeall[format_id~=251-])" --audio-multistreams --sub-langs "all,-live_chat" --embed-chapters --embed-metadata --merge-output-format mkv --output "%(title)s.%(ext)s" "https://www.youtube.com/watch?v=video_id"
 ```
 
 ## Useful links
