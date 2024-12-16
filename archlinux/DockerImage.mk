@@ -23,27 +23,11 @@ REGISTRY ?= docker.io
 WEB_SITE ?= bensuperpc.org
 
 IMAGE_VERSION ?= 1.0.0
-IMAGE_NAME ?= $(PROJECT_NAME)
 IMAGE_PATH ?= $(AUTHOR)
-ifeq ($(IMAGE_PATH),)
-	OUTPUT_IMAGE ?= $(IMAGE_NAME)
-else
-	OUTPUT_IMAGE ?= $(IMAGE_PATH)/$(IMAGE_NAME)
-endif
+IMAGE_NAME ?= $(PROJECT_NAME)
 
 TEST_CMD ?= ./test/test.sh
 RUN_CMD ?= 
-
-# Docker config
-DOCKERFILE ?= Dockerfile
-DOCKER_EXEC ?= docker
-PROGRESS_OUTPUT ?= plain
-
-# --push
-DOCKER_DRIVER ?= --load
-ARCH_LIST ?= linux/amd64
-comma?= ,
-PLATFORMS ?= $(subst $() $(),$(comma),$(ARCH_LIST))
 
 # Max CPU and memory
 CPUS ?= 8.0
@@ -53,22 +37,56 @@ MEMORY_RESERVATION ?= 2GB
 TMPFS_SIZE ?= 4GB
 BUILD_CPU_SHARES ?= 1024
 BUILD_MEMORY ?= 16GB
+EXTRA_BUILD_ARGS ?=
 
 # Security
 CAP_DROP ?= # --cap-drop ALL
 CAP_ADD ?= # --cap-add SYS_PTRACE
 
-# Git config
-GIT_SHA ?= $(shell git rev-parse HEAD)
-GIT_ORIGIN ?= $(shell git config --get remote.origin.url) 
+# Docker config
+DOCKERFILE ?= Dockerfile
+DOCKER_EXEC ?= docker
+PROGRESS_OUTPUT ?= plain
 
-DATE ?= $(shell date -u +"%Y%m%d")
-UUID ?= $(shell uuidgen)
+ARCH_LIST ?= linux/amd64
 
-CURRENT_USER ?= $(shell whoami)
-UID ?= $(shell id -u ${CURRENT_USER})
-GID ?= $(shell id -g ${CURRENT_USER})
-USERNAME ?= user
+# --push
+DOCKER_DRIVER ?= --load
+
+IMAGE_USERNAME ?= user
+
+# =====================
+# AUTOMATED VARIABLES
+# =====================
+
+comma := ,
+PLATFORMS := $(subst $() $(),$(comma),$(ARCH_LIST))
+
+ifeq ($(strip $(IMAGE_PATH)),)
+	OUTPUT_IMAGE := $(IMAGE_NAME)
+else
+	OUTPUT_IMAGE := $(IMAGE_PATH)/$(IMAGE_NAME)
+endif
+IMAGE_FINAL := $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)
+
+IMAGE_TAG_N1 = $(IMAGE_FINAL)-$(basename $@)
+IMAGE_TAG_N2 = $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)
+IMAGE_TAG_N3 = $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)
+IMAGE_TAG_N4 = $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
+
+GIT_SHA := $(shell git rev-parse HEAD || echo "unknown")
+GIT_ORIGIN := $(shell git config --get remote.origin.url || echo "unknown")
+
+DATE := $(shell date -u +"%Y%m%d")
+UUID = $(shell uuidgen)
+
+CURRENT_USER := $(shell whoami)
+UID := $(shell id -u ${CURRENT_USER})
+GID := $(shell id -g ${CURRENT_USER})
+
+# =====================
+# TARGETS
+# =====================
 
 .PHONY: all
 all: $(addsuffix .test,$(BASE_IMAGE_TAGS))
@@ -92,16 +110,16 @@ pull: $(addsuffix .pull,$(BASE_IMAGE_TAGS))
 $(BASE_IMAGE_TAGS): $(Dockerfile)
 	$(DOCKER_EXEC) buildx build . --file $(DOCKERFILE) \
 		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@-$(IMAGE_VERSION)-$(DATE) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@-$(IMAGE_VERSION) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@ \
+		--tag $(IMAGE_FINAL)-$@ \
+		--tag $(IMAGE_FINAL)-$@-$(IMAGE_VERSION) \
+		--tag $(IMAGE_FINAL)-$@-$(IMAGE_VERSION)-$(DATE) \
+		--tag $(IMAGE_FINAL)-$@-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) \
 		--memory $(BUILD_MEMORY) --cpu-shares $(BUILD_CPU_SHARES) --compress \
 		--build-arg BUILD_DATE=$(DATE) --build-arg DOCKER_IMAGE=$(BASE_IMAGE_REGISTRY)/$(BASE_IMAGE_NAME):$@ \
 		--build-arg IMAGE_VERSION=$(IMAGE_VERSION) --build-arg PROJECT_NAME=$(PROJECT_NAME) \
 		--build-arg VCS_REF=$(GIT_SHA) --build-arg VCS_URL=$(GIT_ORIGIN) \
-		--build-arg AUTHOR=$(AUTHOR) --build-arg URL=$(WEB_SITE) --build-arg USERNAME=$(USERNAME) \
-		$(DOCKER_DRIVER)
+		--build-arg AUTHOR=$(AUTHOR) --build-arg URL=$(WEB_SITE) --build-arg USERNAME=$(IMAGE_USERNAME) \
+		$(EXTRA_BUILD_ARGS) $(DOCKER_DRIVER)
 
 .SECONDEXPANSION:
 $(addsuffix .build,$(BASE_IMAGE_TAGS)): $$(basename $$@)
@@ -115,7 +133,7 @@ $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 		--platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
 		--name $(IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
-		$(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) $(TEST_CMD)
+		$(IMAGE_TAG_N4) $(TEST_CMD)
 
 .SECONDEXPANSION:
 $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
@@ -126,26 +144,26 @@ $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 		--platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
 		--name $(IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
-		$(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) $(RUN_CMD)
+		$(IMAGE_TAG_N4) $(RUN_CMD)
 
 #--device=/dev/kvm
 
 .SECONDEXPANSION:
 $(addsuffix .push,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	@echo "Pushing $(REGISTRY)/$(OUTPUT_IMAGE)"
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
+	$(DOCKER_EXEC) push $(IMAGE_TAG_N1)
+	$(DOCKER_EXEC) push $(IMAGE_TAG_N2)
+	$(DOCKER_EXEC) push $(IMAGE_TAG_N3)
+	$(DOCKER_EXEC) push $(IMAGE_TAG_N4)
 #   $(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE) --all-tags
 
 .SECONDEXPANSION:
 $(addsuffix .pull,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	@echo "Pulling $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)" 
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
+	$(DOCKER_EXEC) pull $(IMAGE_TAG_N1)
+	$(DOCKER_EXEC) pull $(IMAGE_TAG_N2)
+	$(DOCKER_EXEC) pull $(IMAGE_TAG_N3)
+	$(DOCKER_EXEC) pull $(IMAGE_TAG_N4)
 
 .PHONY: clean
 clean:
@@ -170,6 +188,10 @@ qemu:
 	$(DOCKER_EXEC) run --rm --privileged multiarch/qemu-user-static --reset -p yes
 	$(DOCKER_EXEC) buildx create --name qemu_builder --driver docker-container --use
 	$(DOCKER_EXEC) buildx inspect --bootstrap
+
+.PHONY: version
+version:
+	@echo "version: $(foreach tag,$(BASE_IMAGE_TAGS),$(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(tag)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA))"
 
 .PHONY: help
 help:

@@ -116,6 +116,12 @@ run: $(addsuffix .run, $(SUBDIRS))
 %.run:
 	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.run,%,$@) run
 
+.PHONY: version
+version: $(addsuffix .version, $(SUBDIRS))
+
+%.version:
+	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.version,%,$@) version
+
 .PHONY: clean
 clean: $(addsuffix .clean, $(SUBDIRS))
 
