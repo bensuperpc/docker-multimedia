@@ -69,11 +69,6 @@ else
 endif
 IMAGE_FINAL := $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)
 
-IMAGE_TAG_N1 = $(IMAGE_FINAL)-$(basename $@)
-IMAGE_TAG_N2 = $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)
-IMAGE_TAG_N3 = $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)
-IMAGE_TAG_N4 = $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
-
 GIT_SHA := $(shell git rev-parse HEAD || echo "unknown")
 GIT_ORIGIN := $(shell git config --get remote.origin.url || echo "unknown")
 
@@ -110,6 +105,7 @@ pull: $(addsuffix .pull,$(BASE_IMAGE_TAGS))
 $(BASE_IMAGE_TAGS): $(Dockerfile)
 	$(DOCKER_EXEC) buildx build . --file $(DOCKERFILE) \
 		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
+		--tag $(IMAGE_FINAL) \
 		--tag $(IMAGE_FINAL)-$@ \
 		--tag $(IMAGE_FINAL)-$@-$(IMAGE_VERSION) \
 		--tag $(IMAGE_FINAL)-$@-$(IMAGE_VERSION)-$(DATE) \
@@ -133,7 +129,7 @@ $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 		--platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
 		--name $(IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
-		$(IMAGE_TAG_N4) $(TEST_CMD)
+		$(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) $(TEST_CMD)
 
 .SECONDEXPANSION:
 $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
@@ -144,26 +140,28 @@ $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 		--platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
 		--name $(IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
-		$(IMAGE_TAG_N4) $(RUN_CMD)
+		$(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) $(RUN_CMD)
 
 #--device=/dev/kvm
 
 .SECONDEXPANSION:
 $(addsuffix .push,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	@echo "Pushing $(REGISTRY)/$(OUTPUT_IMAGE)"
-	$(DOCKER_EXEC) push $(IMAGE_TAG_N1)
-	$(DOCKER_EXEC) push $(IMAGE_TAG_N2)
-	$(DOCKER_EXEC) push $(IMAGE_TAG_N3)
-	$(DOCKER_EXEC) push $(IMAGE_TAG_N4)
+	$(DOCKER_EXEC) push $(IMAGE_FINAL)
+	$(DOCKER_EXEC) push $(IMAGE_FINAL)-$(basename $@)
+	$(DOCKER_EXEC) push $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)
+	$(DOCKER_EXEC) push $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)
+	$(DOCKER_EXEC) push $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
 #   $(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE) --all-tags
 
 .SECONDEXPANSION:
 $(addsuffix .pull,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	@echo "Pulling $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)" 
-	$(DOCKER_EXEC) pull $(IMAGE_TAG_N1)
-	$(DOCKER_EXEC) pull $(IMAGE_TAG_N2)
-	$(DOCKER_EXEC) pull $(IMAGE_TAG_N3)
-	$(DOCKER_EXEC) pull $(IMAGE_TAG_N4)
+	@echo "Pulling $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)"
+	$(DOCKER_EXEC) pull $(IMAGE_FINAL)
+	$(DOCKER_EXEC) pull $(IMAGE_FINAL)-$(basename $@)
+	$(DOCKER_EXEC) pull $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)
+	$(DOCKER_EXEC) pull $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)
+	$(DOCKER_EXEC) pull $(IMAGE_FINAL)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
 
 .PHONY: clean
 clean:
