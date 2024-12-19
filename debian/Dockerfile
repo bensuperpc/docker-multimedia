@@ -1,5 +1,5 @@
-ARG DOCKER_IMAGE=debian:bookworm
-FROM ${DOCKER_IMAGE} AS base
+ARG BASE_IMAGE=debian:bookworm
+FROM ${BASE_IMAGE} AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -95,7 +95,7 @@ FROM base AS final
 ARG BUILD_DATE=${BUILD_DATE}
 ARG VCS_REF=""
 ARG VCS_URL="https://github.com/bensuperpc/docker-multimedia"
-ARG PROJECT_NAME=${PROJECT_NAME}
+ARG OUTPUT_IMAGE_NAME=${OUTPUT_IMAGE_NAME}
 ARG AUTHOR="Bensuperpc"
 ARG URL="https://github.com/bensuperpc"
 
@@ -110,7 +110,7 @@ LABEL description="Docker image with multimedia tools"
 
 LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.build-date=${BUILD_DATE} \
-      org.label-schema.name=${PROJECT_NAME} \
+      org.label-schema.name=${OUTPUT_IMAGE_NAME} \
       org.label-schema.description="multimedia tools" \
       org.label-schema.version=${IMAGE_VERSION} \
       org.label-schema.vendor=${AUTHOR} \

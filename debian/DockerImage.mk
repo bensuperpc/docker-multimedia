@@ -11,39 +11,33 @@
 #//                                                          //
 #//////////////////////////////////////////////////////////////
 
-# Base image
-BASE_IMAGE_REGISTRY ?= docker.io
-BASE_IMAGE_NAME ?= archlinux
-BASE_IMAGE_TAGS ?= base
-
-# Output docker image
-PROJECT_NAME ?= multimedia
 AUTHOR ?= bensuperpc
-REGISTRY ?= docker.io
 WEB_SITE ?= bensuperpc.org
 
-IMAGE_VERSION ?= 1.0.0
-IMAGE_NAME ?= $(PROJECT_NAME)
-IMAGE_PATH ?= $(AUTHOR)
-ifeq ($(IMAGE_PATH),)
-	OUTPUT_IMAGE ?= $(IMAGE_NAME)
+# Base docker image
+BASE_IMAGE_REGISTRY ?= docker.io
+BASE_IMAGE_PATH ?= 
+BASE_IMAGE_NAME ?= archlinux
+BASE_IMAGE_TAGS ?= base
+ifeq ($(strip $(BASE_IMAGE_PATH)),)
+	BASE_IMAGE_FINAL := $(BASE_IMAGE_REGISTRY)/$(BASE_IMAGE_NAME)
 else
-	OUTPUT_IMAGE ?= $(IMAGE_PATH)/$(IMAGE_NAME)
+	BASE_IMAGE_FINAL := $(BASE_IMAGE_REGISTRY)/$(BASE_IMAGE_PATH)/$(BASE_IMAGE_NAME)
+endif
+
+# Output docker image
+OUTPUT_IMAGE_REGISTRY ?= docker.io
+OUTPUT_IMAGE_PATH ?= bensuperpc
+OUTPUT_IMAGE_NAME ?= multimedia
+OUTPUT_IMAGE_VERSION ?= 1.0.0
+ifeq ($(strip $(OUTPUT_IMAGE_PATH)),)
+	OUTPUT_IMAGE_FINAL := $(OUTPUT_IMAGE_REGISTRY)/$(OUTPUT_IMAGE_NAME)
+else
+	OUTPUT_IMAGE_FINAL := $(OUTPUT_IMAGE_REGISTRY)/$(OUTPUT_IMAGE_PATH)/$(OUTPUT_IMAGE_NAME)
 endif
 
 TEST_CMD ?= ./test/test.sh
 RUN_CMD ?= 
-
-# Docker config
-DOCKERFILE ?= Dockerfile
-DOCKER_EXEC ?= docker
-PROGRESS_OUTPUT ?= plain
-
-# --push
-DOCKER_DRIVER ?= --load
-ARCH_LIST ?= linux/amd64
-comma?= ,
-PLATFORMS ?= $(subst $() $(),$(comma),$(ARCH_LIST))
 
 # Max CPU and memory
 CPUS ?= 8.0
@@ -53,22 +47,44 @@ MEMORY_RESERVATION ?= 2GB
 TMPFS_SIZE ?= 4GB
 BUILD_CPU_SHARES ?= 1024
 BUILD_MEMORY ?= 16GB
+EXTRA_BUILD_ARGS ?=
 
 # Security
 CAP_DROP ?= # --cap-drop ALL
 CAP_ADD ?= # --cap-add SYS_PTRACE
 
-# Git config
-GIT_SHA ?= $(shell git rev-parse HEAD)
-GIT_ORIGIN ?= $(shell git config --get remote.origin.url) 
+# Docker config
+DOCKERFILE ?= Dockerfile
+DOCKER_EXEC ?= docker
+PROGRESS_OUTPUT ?= plain
 
-DATE ?= $(shell date -u +"%Y%m%d")
-UUID ?= $(shell uuidgen)
+ARCH_LIST ?= linux/amd64
 
-CURRENT_USER ?= $(shell whoami)
-UID ?= $(shell id -u ${CURRENT_USER})
-GID ?= $(shell id -g ${CURRENT_USER})
-USERNAME ?= user
+# --push
+DOCKER_DRIVER ?= --load
+
+IMAGE_USERNAME ?= user
+
+# =====================
+# AUTOMATED VARIABLES
+# =====================
+
+comma := ,
+PLATFORMS := $(subst $() $(),$(comma),$(ARCH_LIST))
+
+GIT_SHA := $(shell git rev-parse HEAD || echo "unknown")
+GIT_ORIGIN := $(shell git config --get remote.origin.url || echo "unknown")
+
+DATE := $(shell date -u +"%Y%m%d")
+UUID = $(shell uuidgen)
+
+CURRENT_USER := $(shell whoami)
+UID := $(shell id -u ${CURRENT_USER})
+GID := $(shell id -g ${CURRENT_USER})
+
+# =====================
+# TARGETS
+# =====================
 
 .PHONY: all
 all: $(addsuffix .test,$(BASE_IMAGE_TAGS))
@@ -92,16 +108,18 @@ pull: $(addsuffix .pull,$(BASE_IMAGE_TAGS))
 $(BASE_IMAGE_TAGS): $(Dockerfile)
 	$(DOCKER_EXEC) buildx build . --file $(DOCKERFILE) \
 		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@-$(IMAGE_VERSION)-$(DATE) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@-$(IMAGE_VERSION) \
-		--tag $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$@ \
+		--tag $(OUTPUT_IMAGE_FINAL) \
+		--tag $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME) \
+		--tag $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$@ \
+		--tag $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$@-$(OUTPUT_IMAGE_VERSION) \
+		--tag $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$@-$(OUTPUT_IMAGE_VERSION)-$(DATE) \
+		--tag $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$@-$(OUTPUT_IMAGE_VERSION)-$(DATE)-$(GIT_SHA) \
 		--memory $(BUILD_MEMORY) --cpu-shares $(BUILD_CPU_SHARES) --compress \
-		--build-arg BUILD_DATE=$(DATE) --build-arg DOCKER_IMAGE=$(BASE_IMAGE_REGISTRY)/$(BASE_IMAGE_NAME):$@ \
-		--build-arg IMAGE_VERSION=$(IMAGE_VERSION) --build-arg PROJECT_NAME=$(PROJECT_NAME) \
+		--build-arg BUILD_DATE=$(DATE) --build-arg BASE_IMAGE=$(BASE_IMAGE_FINAL):$@ \
+		--build-arg OUTPUT_IMAGE_VERSION=$(OUTPUT_IMAGE_VERSION) --build-arg OUTPUT_IMAGE_NAME=$(OUTPUT_IMAGE_NAME) \
 		--build-arg VCS_REF=$(GIT_SHA) --build-arg VCS_URL=$(GIT_ORIGIN) \
-		--build-arg AUTHOR=$(AUTHOR) --build-arg URL=$(WEB_SITE) --build-arg USERNAME=$(USERNAME) \
-		$(DOCKER_DRIVER)
+		--build-arg AUTHOR=$(AUTHOR) --build-arg URL=$(WEB_SITE) --build-arg USERNAME=$(IMAGE_USERNAME) \
+		$(EXTRA_BUILD_ARGS) $(DOCKER_DRIVER)
 
 .SECONDEXPANSION:
 $(addsuffix .build,$(BASE_IMAGE_TAGS)): $$(basename $$@)
@@ -114,8 +132,8 @@ $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
 		--platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
-		--name $(IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
-		$(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) $(TEST_CMD)
+		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
+		$(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION)-$(DATE)-$(GIT_SHA) $(TEST_CMD)
 
 .SECONDEXPANSION:
 $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
@@ -125,27 +143,31 @@ $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
 		--platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
-		--name $(IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
-		$(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA) $(RUN_CMD)
+		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
+		$(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION)-$(DATE)-$(GIT_SHA) $(RUN_CMD)
 
 #--device=/dev/kvm
 
 .SECONDEXPANSION:
 $(addsuffix .push,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	@echo "Pushing $(REGISTRY)/$(OUTPUT_IMAGE)"
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)
-	$(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
-#   $(DOCKER_EXEC) push $(REGISTRY)/$(OUTPUT_IMAGE) --all-tags
+	@echo "Pushing $(OUTPUT_IMAGE_FINAL)"
+	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL)
+	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)
+	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)
+	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION)
+	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION)-$(DATE)
+	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
+#   $(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL) --all-tags
 
 .SECONDEXPANSION:
 $(addsuffix .pull,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	@echo "Pulling $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)" 
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)
-	$(DOCKER_EXEC) pull $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
+	@echo "Pulling $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)"
+	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL)
+	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)
+	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)
+	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION)
+	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION)-$(DATE)
+	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION)-$(DATE)-$(GIT_SHA)
 
 .PHONY: clean
 clean:
@@ -155,13 +177,13 @@ clean:
 
 .PHONY: purge
 purge: clean
-	@echo "Remove all $(OUTPUT_IMAGE) images and tags"
-	$(DOCKER_EXEC) images --filter='reference=$(OUTPUT_IMAGE)' --format='{{.Repository}}:{{.Tag}}' | xargs -r $(DOCKER_EXEC) rmi -f
+	@echo "Remove all $(OUTPUT_IMAGE_FINAL) images and tags"
+	$(DOCKER_EXEC) images --filter='reference=$(OUTPUT_IMAGE_FINAL)' --format='{{.Repository}}:{{.Tag}}' | xargs -r $(DOCKER_EXEC) rmi -f
 #   	docker rmi -f $(docker images -f "dangling=true" -q) 2>/dev/null || true
 
 .PHONY: update
 update:
-	$(foreach tag,$(BASE_IMAGE_TAGS),$(DOCKER_EXEC) pull $(BASE_IMAGE_NAME):$(tag);)
+	$(foreach tag,$(BASE_IMAGE_TAGS),$(DOCKER_EXEC) pull $(BASE_IMAGE_FINAL):$(tag);)
 
 # https://github.com/linuxkit/linuxkit/tree/master/pkg/binfmt
 .PHONY: qemu
@@ -170,6 +192,10 @@ qemu:
 	$(DOCKER_EXEC) run --rm --privileged multiarch/qemu-user-static --reset -p yes
 	$(DOCKER_EXEC) buildx create --name qemu_builder --driver docker-container --use
 	$(DOCKER_EXEC) buildx inspect --bootstrap
+
+.PHONY: version
+version:
+	@echo "version: $(foreach tag,$(BASE_IMAGE_TAGS),$(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(tag)-$(OUTPUT_IMAGE_VERSION)-$(DATE)-$(GIT_SHA))"
 
 .PHONY: help
 help:
@@ -194,7 +220,7 @@ help:
 .SECONDEXPANSION:
 $(addsuffix .save,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	@echo "Not implemented yet"
-#	docker save $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION) | xz -e7 -v -T0 > $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION).tar.xz
+#	docker save $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION) | xz -e7 -v -T0 > $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION).tar.xz
 
 #   Bash version
 #	DOCKER_IMAGE=ben/ben:ben; install -Dv /dev/null "$DOCKER_IMAGE".tar.xz && docker pull "$DOCKER_IMAGE" && docker save "$DOCKER_IMAGE" | xz -e7 -v -T0 > "$DOCKER_IMAGE".tar.xz
@@ -202,4 +228,4 @@ $(addsuffix .save,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 .SECONDEXPANSION:
 $(addsuffix .load,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	@echo "Not implemented yet"
-#	xz -v -d -k < $(REGISTRY)/$(OUTPUT_IMAGE):$(BASE_IMAGE_NAME)-$(basename $@)-$(IMAGE_VERSION).tar.xz | docker load
+#	xz -v -d -k < $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION).tar.xz | docker load
