@@ -6,6 +6,8 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
 #   ffmpeg and video tools
     ffmpeg \
     mlt \
+    libexif \
+    rtaudio \
     multimon-ng \
     nageru \
 #   AV1
@@ -48,6 +50,8 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     mat2 \
     ffms2 \
     dsp \
+    a2jmidid \
+    libffado \
 #   DVD
     libdvdcss \
 #   MPEG2
@@ -58,6 +62,7 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     sox \
     vorbis-tools \
     flac \
+    opus-tools \
     # PDF   
     ghostscript \ 
     exiv2 \
@@ -85,8 +90,11 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     tar \    
     zstd \
     bash-completion \
-#   vulkan-driver
-#   Drivers intel
+#   Drivers
+#    intel-media-driver \
+#    libvdpau-va-gl \
+#    opencl-driver \
+#    libvpl-tools \
 #   intel-media-sdk \
 #    onevpl-intel-gpu \
 #    libva-intel-driver \

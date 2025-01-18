@@ -32,6 +32,8 @@ jobs:
       - name: Build
         run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}
       - name: Test the image
+        run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}.update
+      - name: Test the image
         run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}.test
       - name: clean the image
         run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}.clean
