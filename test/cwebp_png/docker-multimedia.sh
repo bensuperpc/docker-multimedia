@@ -7,10 +7,10 @@ TAG="archlinux-base"
 
 DOCKER_IMAGE="multimedia-$(uuidgen)"
 
-CPUS="4"
+CPUS="8"
 CPU_SHARES="1024"
 RES_RAM="2GB"
-MAX_RAM="8GB"
+MAX_RAM="16GB"
 TMP_RAM="4GB"
 
 PUID="$(id -u)"

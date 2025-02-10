@@ -2,15 +2,16 @@
 set -euo pipefail
 
 readonly z=${1:-9}
+readonly q=${2:-100}
 
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 
 function convert_to_webp {
     local file="$1"
-    local output_file="${file%.*}_z${z}_lossless.webp"
+    local output_file="${file%.*}_z${z}_q${q}_lossless.webp"
 
-    # Convert the image to WebP format -alpha_filter best -hint picture -low_memory -preset "$preset"
-    cwebp -quiet -metadata all -lossless -exact -z "$z" "$file" -o "$output_file"
+    # Convert the image to WebP format -mt
+    cwebp -quiet -metadata all -lossless -exact -z "$z" -q "$q" "$file" -o "$output_file"
 
     # Copy the timestamp from the original file
     touch -r "$file" "$output_file"
@@ -30,7 +31,7 @@ function convert_to_webp {
 }
 
 export -f convert_to_webp
-export z
+export z q
 
 # --progress --line-buffer --bar --halt now,fail=1
 find . -name "*.png" -type f -print0 | parallel --null convert_to_webp "{}"

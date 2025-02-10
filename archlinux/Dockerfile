@@ -143,11 +143,11 @@ WORKDIR /work
 COPY --from=root-project common/entrypoint.sh /entrypoint.sh
 RUN chmod 755 /entrypoint.sh && chown root:root /entrypoint.sh
 
-ARG USERNAME=user
-RUN useradd -m "${USERNAME}"
+#ARG USERNAME=user
+#RUN useradd -m "${USERNAME}"
 # Add color to bash
-RUN echo PS1="'\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\] '" >> "/home/${USERNAME}/.bashrc"
-USER ${USERNAME}
+#RUN echo PS1="'\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\] '" >> "/home/${USERNAME}/.bashrc"
+#USER ${USERNAME}
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash", "-l"]

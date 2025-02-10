@@ -6,6 +6,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get -y install \
 # Core multimedia tools
     ffmpeg \
+    x264 \
+    x265 \
     melt \
     multimon-ng \
     nageru \
@@ -15,12 +17,14 @@ RUN apt-get update && apt-get -y install \
     svt-av1 \
     libheif-dev \
     libavif-dev \
+    libavif-bin \
     libaom-dev \
 # JPEG
     jpegoptim \
     libjpeg-dev \
     libopenjp2-7-dev \    
     libjxl-dev \
+    libjxl-tools \
 # WebP
     webp \
     webp-pixbuf-loader \
@@ -41,6 +45,8 @@ RUN apt-get update && apt-get -y install \
     sox \
     vorbis-tools \
     flac \
+    lame \
+    libopusenc-dev \
 # Developer Tools
     build-essential \
     libdevil-dev \
@@ -128,11 +134,11 @@ WORKDIR /work
 COPY --from=root-project common/entrypoint.sh /entrypoint.sh
 RUN chmod 755 /entrypoint.sh && chown root:root /entrypoint.sh
 
-ARG USERNAME=user
-RUN useradd -m "${USERNAME}"
+#ARG USERNAME=user
+#RUN useradd -m "${USERNAME}"
 # Add color to bash
-RUN echo PS1="'\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\] '" >> "/home/${USERNAME}/.bashrc"
-USER ${USERNAME}
+#RUN echo PS1="'\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\] '" >> "/home/${USERNAME}/.bashrc"
+#USER ${USERNAME}
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash", "-l"]

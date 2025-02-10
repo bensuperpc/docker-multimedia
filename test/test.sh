@@ -16,10 +16,14 @@ echo "cwebp OK"
 avifenc --version
 echo "avifenc OK"
 
+#aomenc --help
+#aomdec --help
+#echo "aom OK"
+
 cjxl --version
 echo "cjxl OK"
 
-magick -version
+magick -version || convert -version
 echo "magick OK"
 
 # Check video encoders/decoders/tools
@@ -29,18 +33,30 @@ echo "SvtAv1EncApp OK"
 rav1e --version
 echo "rav1e OK"
 
+dav1d --version
+echo "dav1d OK"
+
 x265 --version
 echo "x265 OK"
 
 x264 --version
 echo "x264 OK"
 
+#twolame -version
+#echo "twolame OK"
+
 # Check audio encoders/decoders/tools
 melt -version
 echo "melt OK"
 
-opusenc --version
-echo "opusenc OK"
+flac -version
+echo "flac OK"
+
+#opusenc --version
+#echo "opusenc OK"
 
 lame --version
 echo "lame OK"
+
+#timidity -version
+#echo "timidity OK"
