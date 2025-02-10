@@ -36,8 +36,8 @@ else
 	OUTPUT_IMAGE_FINAL := $(OUTPUT_IMAGE_REGISTRY)/$(OUTPUT_IMAGE_PATH)/$(OUTPUT_IMAGE_NAME)
 endif
 
-TEST_CMD ?= ./test/test.sh
-RUN_CMD ?=
+TEST_CMD ?= ls
+RUN_CMD ?= ls
 
 # Max CPU and memory
 CPUS ?= 8.0
@@ -49,8 +49,6 @@ BUILD_CPU_SHARES ?= 1024
 BUILD_MEMORY ?= 16GB
 EXTRA_BUILD_ARGS ?=
 
-WORKDIR ?= /work
-
 # Security
 CAP_DROP ?= # --cap-drop ALL
 CAP_ADD ?= # --cap-add SYS_PTRACE
@@ -60,6 +58,8 @@ DOCKERFILE ?= Dockerfile
 DOCKER_EXEC ?= docker
 PROGRESS_OUTPUT ?= plain
 BUILD_CONTEXT ?= $(shell pwd)
+WORKDIR ?= /work
+PROJECT_WORKDIR ?= $(shell pwd)
 
 ARCH_LIST ?= linux/amd64
 
@@ -109,7 +109,7 @@ pull: $(addsuffix .pull,$(BASE_IMAGE_TAGS))
 
 .PHONY: $(BASE_IMAGE_TAGS)
 $(BASE_IMAGE_TAGS): $(Dockerfile)
-	$(DOCKER_EXEC) buildx build . --build-context project-context=$(BUILD_CONTEXT) --file $(DOCKERFILE) \
+	$(DOCKER_EXEC) buildx build . --build-context root-project=$(BUILD_CONTEXT) --file $(DOCKERFILE) \
 		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
 		--tag $(OUTPUT_IMAGE_FINAL) \
 		--tag $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME) \
@@ -131,7 +131,7 @@ $(addsuffix .build,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	$(DOCKER_EXEC) run --rm \
 		--security-opt no-new-privileges --read-only $(CAP_DROP) $(CAP_ADD) --user $(UID):$(GID) \
-		--mount type=bind,source=$(shell pwd),target=/work --workdir $(WORKDIR) \
+		--mount type=bind,source=$(PROJECT_WORKDIR),target=$(WORKDIR) --workdir $(WORKDIR) \
 		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
 		--platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
@@ -142,7 +142,7 @@ $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	$(DOCKER_EXEC) run --rm -it \
 		--security-opt no-new-privileges --read-only $(CAP_DROP) $(CAP_ADD) --user $(UID):$(GID) \
-		--mount type=bind,source=$(shell pwd),target=/work --workdir $(WORKDIR) \
+		--mount type=bind,source=$(PROJECT_WORKDIR),target=$(WORKDIR) --workdir $(WORKDIR) \
 		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
 		--platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \

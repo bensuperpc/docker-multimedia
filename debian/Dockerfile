@@ -125,7 +125,7 @@ ENV PATH="/usr/bin/vendor_perl:$PATH"
 VOLUME [ "/work" ]
 WORKDIR /work
 
-COPY entrypoint.sh /entrypoint.sh
+COPY --from=root-project common/entrypoint.sh /entrypoint.sh
 RUN chmod 755 /entrypoint.sh && chown root:root /entrypoint.sh
 
 ARG USERNAME=user

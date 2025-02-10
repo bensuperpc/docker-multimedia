@@ -26,6 +26,8 @@ OUTPUT_IMAGE_PATH ?= bensuperpc
 OUTPUT_IMAGE_NAME ?= multimedia
 OUTPUT_IMAGE_VERSION ?= 1.0.0
 
+WORKDIR ?= /work
+
 # Max CPU and memory
 CPUS ?= 8.0
 CPU_SHARES ?= 1024
@@ -35,7 +37,7 @@ TMPFS_SIZE ?= 4GB
 BUILD_CPU_SHARES ?= 1024
 BUILD_MEMORY ?= 16GB
 
-TEST_CMD ?= ./test/test.sh
-RUN_CMD ?=
+TEST_CMD ?= ls
+RUN_CMD ?= ls
 
 include DockerImage.mk
