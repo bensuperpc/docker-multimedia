@@ -29,7 +29,7 @@ All multimedia apps (FFMPEG, ImageMagick, AV1 encoders ect...) in a docker conta
 | CPU | 2c/2t | 8c/16t |
 | Instruction set (x86) | x86-64-v2 | x86-64-v3 |
 | Instruction set (ARM) | armv8 | armv8 |
-| RAM | 21 GB | 32 GB |
+| RAM | 4 GB | 32 GB |
 | GPU | - | Hardware acceleration |
 | Disk space | 1 GB | 10 GB |
 | Internet | 10 Mbps | 100 Mbps |

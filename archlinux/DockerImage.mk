@@ -58,8 +58,11 @@ DOCKERFILE ?= Dockerfile
 DOCKER_EXEC ?= docker
 PROGRESS_OUTPUT ?= plain
 BUILD_CONTEXT ?= $(shell pwd)
+
 WORKDIR ?= /work
-PROJECT_WORKDIR ?= $(shell pwd)
+
+BIND_HOST_DIR ?= $(shell pwd)
+BIND_CONTAINER_DIR ?= /work
 
 ARCH_LIST ?= linux/amd64
 
@@ -131,7 +134,7 @@ $(addsuffix .build,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	$(DOCKER_EXEC) run --rm \
 		--security-opt no-new-privileges --read-only $(CAP_DROP) $(CAP_ADD) --user $(UID):$(GID) \
-		--mount type=bind,source=$(PROJECT_WORKDIR),target=$(WORKDIR) --workdir $(WORKDIR) \
+		--mount type=bind,source=$(BIND_HOST_DIR),target=$(BIND_CONTAINER_DIR) --workdir $(WORKDIR) \
 		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
 		--platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
@@ -142,7 +145,7 @@ $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	$(DOCKER_EXEC) run --rm -it \
 		--security-opt no-new-privileges --read-only $(CAP_DROP) $(CAP_ADD) --user $(UID):$(GID) \
-		--mount type=bind,source=$(PROJECT_WORKDIR),target=$(WORKDIR) --workdir $(WORKDIR) \
+		--mount type=bind,source=$(BIND_HOST_DIR),target=$(BIND_CONTAINER_DIR) --workdir $(WORKDIR) \
 		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
 		--platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
