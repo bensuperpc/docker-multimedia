@@ -11,7 +11,7 @@ function convert_to_avif {
     local output_file="${file%.*}_${codec}_z${z}_lossless.avif"
 
     # Convert the image to AVIF format with lossless settings
-    avifenc --lossless --speed "$z" --jobs 1 --codec "$codec" "$file" --output "$output_file"
+    avifenc --jobs 1 --lossless --speed "$z" --codec "$codec" "$file" --output "$output_file"
 
     # Copy the timestamp from the original file
     touch -r "$file" "$output_file"
