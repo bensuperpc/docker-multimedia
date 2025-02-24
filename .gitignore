@@ -19,3 +19,7 @@ downloads/*
 *.mkv
 *.flv
 *.PNG
+
+*.png~
+
+*.torrent

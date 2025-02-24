@@ -40,4 +40,4 @@ BUILD_MEMORY ?= 16GB
 TEST_CMD ?= ls
 RUN_CMD ?= ls
 
-include DockerImage.mk
+include ../template/DockerImage.mk

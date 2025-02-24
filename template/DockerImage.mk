@@ -75,8 +75,7 @@ IMAGE_USERNAME ?= user
 # AUTOMATED VARIABLES
 # =====================
 
-comma := ,
-PLATFORMS := $(subst $() $(),$(comma),$(ARCH_LIST))
+PLATFORMS := $(subst " ",",",$(ARCH_LIST))
 
 GIT_SHA := $(shell git rev-parse HEAD || echo "unknown")
 GIT_ORIGIN := $(shell git config --get remote.origin.url || echo "unknown")
@@ -104,7 +103,7 @@ test: $(addsuffix .test,$(BASE_IMAGE_TAGS))
 .PHONY: run
 run: $(addsuffix .run,$(BASE_IMAGE_TAGS))
 
-.PHONY: run
+.PHONY: push
 push: $(addsuffix .push,$(BASE_IMAGE_TAGS))
 
 .PHONY: pull
@@ -115,8 +114,8 @@ $(BASE_IMAGE_TAGS): $(Dockerfile)
 	$(DOCKER_EXEC) buildx build . --build-context root-project=$(BUILD_CONTEXT) --file $(DOCKERFILE) \
 		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
 		--tag $(OUTPUT_IMAGE_FINAL) \
-		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)
-		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)
+		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION) \
+		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME) \
 		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$@ \
 		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$@-$(DATE) \
 		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$@-$(DATE)-$(GIT_SHA) \

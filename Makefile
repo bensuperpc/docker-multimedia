@@ -35,4 +35,4 @@ BUILD_MEMORY ?= 16GB
 TEST_CMD ?= ./test/test.sh
 RUN_CMD ?=
 
-include DockerImages.mk
+include template/DockerImages.mk
