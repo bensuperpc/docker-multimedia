@@ -34,4 +34,4 @@ export -f convert_to_jxl
 export preset compression
 
 # --progress --line-buffer --bar --halt now,fail=1
-find . -name "*.jpg" -type f -print0 | parallel --null convert_to_jxl "{}"
+find . -iname "*.jpg" -type f -print0 | parallel --null convert_to_jxl "{}"

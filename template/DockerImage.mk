@@ -11,6 +11,26 @@
 #//                                                          //
 #//////////////////////////////////////////////////////////////
 
+# =====================
+# AUTOMATED VARIABLES
+# =====================
+
+PLATFORMS := $(subst " ",",",$(ARCH_LIST))
+
+GIT_SHA := $(shell git rev-parse HEAD || echo "unknown")
+GIT_ORIGIN := $(shell git config --get remote.origin.url || echo "unknown")
+
+DATE := $(shell date -u +"%Y%m%d")
+UUID = $(shell uuidgen)
+
+CURRENT_USER := $(shell whoami)
+UID := $(shell id -u ${CURRENT_USER})
+GID := $(shell id -g ${CURRENT_USER})
+
+# =====================
+# USER DEFINED VARIABLES
+# =====================
+
 AUTHOR ?= bensuperpc
 WEB_SITE ?= bensuperpc.org
 
@@ -36,8 +56,16 @@ else
 	OUTPUT_IMAGE_FINAL := $(OUTPUT_IMAGE_REGISTRY)/$(OUTPUT_IMAGE_PATH)/$(OUTPUT_IMAGE_NAME)
 endif
 
-TEST_CMD ?= ls
-RUN_CMD ?= ls
+# --cap-drop ALL
+# --cap-add SYS_PTRACE
+#--device=/dev/kvm
+TEST_IMAGE_CMD ?= ls
+TEST_IMAGE_ARGS ?=
+
+RUN_IMAGE_CMD ?= ls
+RUN_IMAGE_ARGS ?=
+
+#TEST_USER_ARG := --user $(UID):$(GID)
 
 # Max CPU and memory
 CPUS ?= 8.0
@@ -45,13 +73,10 @@ CPU_SHARES ?= 1024
 MEMORY ?= 16GB
 MEMORY_RESERVATION ?= 2GB
 TMPFS_SIZE ?= 4GB
-BUILD_CPU_SHARES ?= 1024
-BUILD_MEMORY ?= 16GB
-EXTRA_BUILD_ARGS ?=
 
-# Security
-CAP_DROP ?= # --cap-drop ALL
-CAP_ADD ?= # --cap-add SYS_PTRACE
+BUILD_IMAGE_CPU_SHARES ?= 1024
+BUILD_IMAGE_MEMORY ?= 16GB
+BUILD_IMAGE_ARGS ?=
 
 # Docker config
 DOCKERFILE ?= Dockerfile
@@ -68,24 +93,6 @@ ARCH_LIST ?= linux/amd64
 
 # --push
 DOCKER_DRIVER ?= --load
-
-IMAGE_USERNAME ?= user
-
-# =====================
-# AUTOMATED VARIABLES
-# =====================
-
-PLATFORMS := $(subst " ",",",$(ARCH_LIST))
-
-GIT_SHA := $(shell git rev-parse HEAD || echo "unknown")
-GIT_ORIGIN := $(shell git config --get remote.origin.url || echo "unknown")
-
-DATE := $(shell date -u +"%Y%m%d")
-UUID = $(shell uuidgen)
-
-CURRENT_USER := $(shell whoami)
-UID := $(shell id -u ${CURRENT_USER})
-GID := $(shell id -g ${CURRENT_USER})
 
 # =====================
 # TARGETS
@@ -109,6 +116,7 @@ push: $(addsuffix .push,$(BASE_IMAGE_TAGS))
 .PHONY: pull
 pull: $(addsuffix .pull,$(BASE_IMAGE_TAGS))
 
+# --no-cache 
 .PHONY: $(BASE_IMAGE_TAGS)
 $(BASE_IMAGE_TAGS): $(Dockerfile)
 	$(DOCKER_EXEC) buildx build . --build-context root-project=$(BUILD_CONTEXT) --file $(DOCKERFILE) \
@@ -119,42 +127,39 @@ $(BASE_IMAGE_TAGS): $(Dockerfile)
 		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$@ \
 		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$@-$(DATE) \
 		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$@-$(DATE)-$(GIT_SHA) \
-		--memory $(BUILD_MEMORY) --cpu-shares $(BUILD_CPU_SHARES) --compress \
+		--memory $(BUILD_IMAGE_MEMORY) --cpu-shares $(BUILD_IMAGE_CPU_SHARES) --compress \
 		--build-arg BUILD_DATE=$(DATE) --build-arg BASE_IMAGE=$(BASE_IMAGE_FINAL):$@ \
 		--build-arg OUTPUT_IMAGE_VERSION=$(OUTPUT_IMAGE_VERSION) --build-arg OUTPUT_IMAGE_NAME=$(OUTPUT_IMAGE_NAME) \
 		--build-arg VCS_REF=$(GIT_SHA) --build-arg VCS_URL=$(GIT_ORIGIN) \
-		--build-arg AUTHOR=$(AUTHOR) --build-arg URL=$(WEB_SITE) --build-arg USERNAME=$(IMAGE_USERNAME) \
-		$(EXTRA_BUILD_ARGS) $(DOCKER_DRIVER)
+		--build-arg AUTHOR=$(AUTHOR) --build-arg URL=$(WEB_SITE) \
+		$(BUILD_IMAGE_ARGS) $(DOCKER_DRIVER)
 
 .SECONDEXPANSION:
 $(addsuffix .build,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 
+# --user $(UID):$(GID)
 .SECONDEXPANSION:
 $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	$(DOCKER_EXEC) run --rm \
-		--security-opt no-new-privileges --read-only $(CAP_DROP) $(CAP_ADD) --user $(UID):$(GID) \
+	$(DOCKER_EXEC) run --rm --read-only \
+		--security-opt no-new-privileges \
 		--mount type=bind,source=$(BIND_HOST_DIR),target=$(BIND_CONTAINER_DIR) --workdir $(WORKDIR) \
-		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
-		--platform $(PLATFORMS) \
+		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) --platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
-		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
-		$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA) $(TEST_CMD)
+		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) $(TEST_IMAGE_ARGS) \
+		$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA) $(TEST_IMAGE_CMD)
 
 .SECONDEXPANSION:
 $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	$(DOCKER_EXEC) run --rm -it \
-		--security-opt no-new-privileges --read-only $(CAP_DROP) $(CAP_ADD) --user $(UID):$(GID) \
+	$(DOCKER_EXEC) run -it --rm \
+		--security-opt no-new-privileges \
 		--mount type=bind,source=$(BIND_HOST_DIR),target=$(BIND_CONTAINER_DIR) --workdir $(WORKDIR) \
-		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
-		--platform $(PLATFORMS) \
+		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) --platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
-		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
-		$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA) $(RUN_CMD)
-
-#--device=/dev/kvm
+		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) $(RUN_IMAGE_ARGS) \
+		$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA) $(RUN_IMAGE_CMD)
 
 .SECONDEXPANSION:
-$(addsuffix .push,$(BASE_IMAGE_TAGS)): $$(basename $$@)
+$(addsuffix .push,$(BASE_IMAGE_TAGS)): $$(basename $$@).test
 	@echo "Pushing $(OUTPUT_IMAGE_FINAL)"
 	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL)
 	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)

@@ -20,27 +20,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: ["archlinux", "debian"]
+        image: ["archlinux"]
     steps:
       - name: "Checkout Code"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
         with:
-#          submodules: 'recursive'
+          submodules: 'recursive'
           fetch-depth: 1
 #      - name: Install dependencies
 #        run: sudo apt-get update && sudo apt-get install 
-      - name: Build
-        run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}
-      - name: Test the image
-        run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}.update
-      - name: Test the image
-        run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}.test
-      - name: clean the image
-        run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}.clean
-      - name: purge the image
-        run: CPUS=2.0 MEMORY=8GB make ${{ matrix.image }}.purge
-#      - name: "Push to hub.docker.com"
-#        if: github.ref == 'refs/heads/main'
-#        run: |
-#            echo ${{ secrets.DOCKER_PASS }} | docker login --username ${{ secrets.DOCKER_USER }} --password-stdin
-#            make ${{ matrix.image }}.push
+      - name: "Build the image"
+        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}
+      - name: "Pull the latest image"
+        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.update
+      - name: "Test the image"
+        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.test
+#      - name: "clean the image"
+#        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.clean
+#      - name: purge the image
+#        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.purge
+      - name: "Push to hub.docker.com registry"
+        if: github.ref == 'refs/heads/main'
+        run: |
+            echo ${{ secrets.DOCKER_PASS }} | docker login --username ${{ secrets.DOCKER_USER }} --password-stdin
+            CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.push

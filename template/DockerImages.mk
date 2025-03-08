@@ -11,6 +11,23 @@
 #//                                                          //
 #//////////////////////////////////////////////////////////////
 
+# =====================
+# AUTOMATED VARIABLES
+# =====================
+GIT_SHA ?= $(shell git rev-parse HEAD)
+GIT_ORIGIN ?= $(shell git config --get remote.origin.url) 
+
+DATE ?= $(shell date -u +"%Y%m%d")
+UUID ?= $(shell uuidgen)
+
+CURRENT_USER ?= $(shell whoami)
+UID ?= $(shell id -u ${CURRENT_USER})
+GID ?= $(shell id -g ${CURRENT_USER})
+
+# =====================
+# USER DEFINED VARIABLES
+# =====================
+
 SUBDIRS ?= debian ubuntu fedora archlinux
 
 AUTHOR ?= bensuperpc
@@ -25,8 +42,10 @@ OUTPUT_IMAGE_PATH ?= bensuperpc
 OUTPUT_IMAGE_NAME ?= multimedia
 OUTPUT_IMAGE_VERSION ?= 1.0.0
 
-TEST_CMD ?= ./test/test.sh
-RUN_CMD ?= 
+TEST_IMAGE_CMD ?= ./test/test.sh
+TEST_IMAGE_ARGS ?=
+RUN_IMAGE_CMD ?=
+RUN_IMAGE_ARGS ?=
 
 # Docker config
 DOCKERFILE ?= Dockerfile
@@ -49,37 +68,21 @@ CPU_SHARES ?= 1024
 MEMORY ?= 16GB
 MEMORY_RESERVATION ?= 2GB
 TMPFS_SIZE ?= 4GB
-BUILD_CPU_SHARES ?= 1024
-BUILD_MEMORY ?= 16GB
-
-# Security
-CAP_DROP ?= # --cap-drop ALL
-CAP_ADD ?= # --cap-add SYS_PTRACE
+BUILD_IMAGE_CPU_SHARES ?= 1024
+BUILD_IMAGE_MEMORY ?= 16GB
 
 # Custom targets
 CUSTOM_TARGET ?= help
 
-# Git config
-GIT_SHA ?= $(shell git rev-parse HEAD)
-GIT_ORIGIN ?= $(shell git config --get remote.origin.url) 
-
-DATE ?= $(shell date -u +"%Y%m%d")
-UUID ?= $(shell uuidgen)
-
-CURRENT_USER ?= $(shell whoami)
-UID ?= $(shell id -u ${CURRENT_USER})
-GID ?= $(shell id -g ${CURRENT_USER})
-USERNAME ?= user
-
 # Merge all variables
 MAKEFILE_VARS ?= AUTHOR=$(AUTHOR) PLATFORMS="$(PLATFORMS)" \
 	CPUS=$(CPUS) CPU_SHARES=$(CPU_SHARES) MEMORY=$(MEMORY) MEMORY_RESERVATION=$(MEMORY_RESERVATION) \
-	BUILD_CPU_SHARES=$(BUILD_CPU_SHARES) BUILD_MEMORY=$(BUILD_MEMORY) WEB_SITE=$(WEB_SITE) BIND_HOST_DIR=$(BIND_HOST_DIR) \
+	BUILD_IMAGE_CPU_SHARES=$(BUILD_IMAGE_CPU_SHARES) BUILD_IMAGE_MEMORY=$(BUILD_IMAGE_MEMORY) WEB_SITE=$(WEB_SITE) BIND_HOST_DIR=$(BIND_HOST_DIR) \
 	DOCKERFILE=$(DOCKERFILE) DOCKER_EXEC=$(DOCKER_EXEC) DOCKER_DRIVER=$(DOCKER_DRIVER) BUILD_CONTEXT=$(BUILD_CONTEXT) \
 	GIT_SHA=$(GIT_SHA) GIT_ORIGIN=$(GIT_ORIGIN) DATE=$(DATE) UUID=$(UUID) \
-	USERNAME=$(USERNAME) UID=$(UID) GID=$(GID) TMPFS_SIZE=$(TMPFS_SIZE) BIND_CONTAINER_DIR=$(BIND_CONTAINER_DIR) \
-	TEST_CMD=$(TEST_CMD) RUN_CMD=$(RUN_CMD) PROGRESS_OUTPUT=$(PROGRESS_OUTPUT) \
-	CAP_DROP=$(CAP_DROP) CAP_ADD=$(CAP_ADD) BASE_IMAGE_REGISTRY=$(BASE_IMAGE_REGISTRY) \
+	UID=$(UID) GID=$(GID) TMPFS_SIZE=$(TMPFS_SIZE) BIND_CONTAINER_DIR=$(BIND_CONTAINER_DIR) \
+	TEST_IMAGE_CMD=$(TEST_IMAGE_CMD) RUN_IMAGE_CMD=$(RUN_IMAGE_CMD) PROGRESS_OUTPUT=$(PROGRESS_OUTPUT) \
+	BASE_IMAGE_REGISTRY=$(BASE_IMAGE_REGISTRY) \
 	OUTPUT_IMAGE_REGISTRY=$(OUTPUT_IMAGE_REGISTRY) OUTPUT_IMAGE_PATH=$(OUTPUT_IMAGE_PATH) \
 	OUTPUT_IMAGE_NAME=$(OUTPUT_IMAGE_NAME) OUTPUT_IMAGE_VERSION=$(OUTPUT_IMAGE_VERSION)
 

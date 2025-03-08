@@ -27,4 +27,4 @@ export -f convert_to_av1
 export preset crf option
 
 # --progress --line-buffer --bar --halt now,fail=1
-find . \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" \) -type f -print0 | parallel --jobs "$threads" --null convert_to_av1 "{}"
+find . \( -iname "*.mp4" -o -iname "*.mov" -o -iname "*.webm" \) -type f -print0 | parallel --jobs "$threads" --null convert_to_av1 "{}"

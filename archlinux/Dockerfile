@@ -52,6 +52,7 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     dsp \
     a2jmidid \
     libffado \
+    menyoki \
 #   DVD
     libdvdcss \
 #   MPEG2

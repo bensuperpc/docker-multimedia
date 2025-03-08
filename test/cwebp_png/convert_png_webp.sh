@@ -56,4 +56,5 @@ export -f convert_to_webp check_image_diff
 export z q
 
 # --progress --line-buffer --bar --halt now,fail=1
-find . -name "*.png" -type f -print0 | parallel --null convert_to_webp "{}"
+find . -iname "*.png" -type f -print0 | parallel --null convert_to_webp "{}"
+
