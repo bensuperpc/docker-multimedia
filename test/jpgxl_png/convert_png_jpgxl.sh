@@ -33,4 +33,4 @@ export -f convert_to_jxl
 export compression
 
 # --progress --line-buffer --bar --halt now,fail=1
-find . -name "*.png" -type f -print0 | parallel --null convert_to_jxl "{}"
+find . -iname "*.png" -type f -print0 | parallel --null convert_to_jxl "{}"

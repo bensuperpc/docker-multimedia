@@ -31,7 +31,7 @@ export -f convert_to_avif
 export codec z
 
 # --progress --line-buffer --bar --halt now,fail=1
-find . -name "*.png" -type f -print0 | parallel --null convert_to_avif "{}"
+find . -iname "*.png" -type f -print0 | parallel --null convert_to_avif "{}"
 
 # No lossless for now
 # rav1e

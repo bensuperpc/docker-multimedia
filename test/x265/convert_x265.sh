@@ -27,4 +27,4 @@ export -f convert_to_h265
 export preset crf option
 
 # --progress --line-buffer --bar --halt now,fail=1
-find . \( -name "*.mp4" -o -name "*.mkv" -o -name "*.webm" \) -type f -print0 | parallel --null convert_to_h265 "{}"
+find . \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.webm" \) -type f -print0 | parallel --null convert_to_h265 "{}"
