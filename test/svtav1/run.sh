@@ -8,8 +8,6 @@ readonly CPU_CORES=${3:-1}
 readonly DOCKER_SCRIPT=docker-multimedia.sh
 readonly CONVERT_SCRIPT=convert_svtav1.sh
 
-# Check if the files exist
-
 if [ ! -f "${ARG1}" ]; then
     echo "Error: ${ARG1} does not exist"
     exit 1
