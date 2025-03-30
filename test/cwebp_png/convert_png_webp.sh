@@ -2,8 +2,9 @@
 set -euo pipefail
 
 readonly z=${1:-9}
+readonly threads=${2:-1}
 
-echo "Convert PNG to WebP with z=$z"
+echo "Convert PNG to WebP with z=$z using $threads threads"
 
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 
@@ -54,8 +55,8 @@ function check_image_diff {
 }
 
 export -f convert_to_webp check_image_diff
-export z
+export z threads
 
 # --progress --line-buffer --bar --halt now,fail=1
-find . -iname "*.png" -type f -print0 | parallel --null convert_to_webp "{}"
+find . -iname "*.png" -type f -print0 | parallel --jobs "$threads" --null convert_to_webp "{}"
 

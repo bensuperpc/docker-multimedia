@@ -2,8 +2,9 @@
 set -euo pipefail
 
 readonly compression=${1:-9}
+readonly threads=${2:-1}
 
-echo "Convert PNG to JPEG XL with compression=$compression"
+echo "Convert PNG to JPEG XL with compression=$compression and threads=$threads"
 
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 
@@ -56,4 +57,4 @@ export -f convert_to_jxl check_image_diff
 export compression
 
 # --progress --line-buffer --bar --halt now,fail=1
-find . -iname "*.png" -type f -print0 | parallel --null convert_to_jxl "{}"
+find . -iname "*.png" -type f -print0 | parallel --jobs "$threads" --null convert_to_jxl "{}"

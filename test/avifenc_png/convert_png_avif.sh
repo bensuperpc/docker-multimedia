@@ -3,8 +3,9 @@ set -euo pipefail
 
 readonly codec=${1:-aom}
 readonly z=${2:-10}
+readonly threads=${3:-1}
 
-echo "Convert PNG to AVIF with codec=$codec and z=$z"
+echo "Convert PNG to AVIF with codec=$codec, z=$z and threads=$threads"
 
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 
@@ -55,10 +56,10 @@ function check_image_diff {
 }
 
 export -f convert_to_avif check_image_diff
-export codec z
+export codec z threads
 
 # --progress --line-buffer --bar --halt now,fail=1
-find . -iname "*.png" -type f -print0 | parallel --null convert_to_avif "{}"
+find . -iname "*.png" -type f -print0 | parallel --jobs "$threads" --null convert_to_avif "{}"
 
 # No lossless for now
 # rav1e

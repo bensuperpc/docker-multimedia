@@ -5,6 +5,10 @@ readonly preset=${1:-4}
 readonly crf=${2:-18}
 readonly option=${3:-}
 
+echo "Using preset: $preset"
+echo "Using CRF: $crf"
+echo "Using options: $option"
+
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 
 function convert_to_h265 {
