@@ -26,12 +26,12 @@ All multimedia apps (FFMPEG, ImageMagick, AV1 encoders ect...) in a docker conta
 
 | Hardware | Minimum | Recommended |
 | :------: | :------: | :------: |
-| CPU | 2c/2t | 8c/16t |
+| CPU | 2c/2t | 6c/12t |
 | Instruction set (x86) | x86-64-v2 | x86-64-v3 |
 | Instruction set (ARM) | armv8 | armv8 |
-| RAM | 4 GB | 32 GB |
-| GPU | - | Hardware acceleration |
-| Disk space | 1 GB | 10 GB |
+| RAM | 8 GB | 32 GB |
+| GPU | - | Hardware enc/dec |
+| Disk space | 4 GB | 16 GB |
 | Internet | 10 Mbps | 100 Mbps |
 
 ## How to use docker-multimedia
@@ -48,7 +48,7 @@ git clone --recurse-submodules https://github.com/bensuperpc/docker-multimedia.g
 make archlinux
 ```
 
-Test the container
+Test the container:
 
 ```bash
 make archlinux.test

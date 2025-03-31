@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 readonly ARG1=${1:-preset_svtav1.txt}

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 readonly MACHINES_FILE=${1:-machines.txt}

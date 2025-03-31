@@ -19,10 +19,14 @@ if (( $# ==  0)); then
     exit 1
 fi
 
-DOCKER_IMAGE="$1"
-OUTPUT_PATH="${DOCKER_IMAGE}.tar.xz"
-mkdir -p "$(dirname "$OUTPUT_PATH")"
-docker pull "$DOCKER_IMAGE"
-TMP_FILE=$(mktemp "${OUTPUT_PATH}.XXXXXX")
-docker save "$DOCKER_IMAGE" | xz -9e -v -T0 > "$TMP_FILE"
-mv "$TMP_FILE" "$OUTPUT_PATH"
+#!/usr/bin/env bash
+set -euo pipefail
+
+ARCHIVE_PATH="$1"
+
+if [[ ! -f "$ARCHIVE_PATH" ]]; then
+    echo "Erreur : le fichier '$ARCHIVE_PATH' n'existe pas."
+    exit 1
+fi
+
+xz -d -c "$ARCHIVE_PATH" | docker load

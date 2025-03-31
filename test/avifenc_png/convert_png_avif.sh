@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 readonly codec=${1:-aom}
@@ -19,16 +19,12 @@ function convert_to_avif {
         return
     fi
 
-    # Convert the image to AVIF format with lossless settings
     avifenc --jobs 1 --lossless --speed "$z" --codec "$codec" "$input_file" --output "$output_file"
 
-    # Copy the timestamp from the input_file
     touch -r "$input_file" "$output_file"
     
-    # Copy metadata from the original input_file
     exiftool -m -TagsFromFile "$input_file" -All:All --CreatorTool --MetadataDate -XMPToolkit= "$output_file" &>/dev/null
 
-    # Check if the images are identical
     check_image_diff "$input_file" "$output_file"
 }
 
@@ -36,7 +32,6 @@ function check_image_diff {
     local input_file="$1"
     local output_file="$2"
 
-    # Check if the images are identical
     if ! compare -metric AE "$input_file" "$output_file" null: >/dev/null 2>&1; then
         echo "Error: images differ for file $input_file" >&2
         rm -f "$output_file"

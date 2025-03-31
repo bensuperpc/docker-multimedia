@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 REGISTRY="docker.io"
@@ -7,10 +7,10 @@ TAG="archlinux-base"
 
 DOCKER_IMAGE="multimedia-$(uuidgen)"
 
-CPUS="16"
+CPUS="$(nproc --all)"
 CPU_SHARES="1024"
 RES_RAM="4GB"
-MAX_RAM="32GB"
+MAX_RAM="16GB"
 TMP_RAM="4GB"
 
 PUID="$(id -u)"

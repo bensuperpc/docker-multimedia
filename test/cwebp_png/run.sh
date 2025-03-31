@@ -1,12 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 readonly ARG1=${1:-z_png_webp.txt}
 readonly CPU_CORES=${2:-1}
 readonly DOCKER_SCRIPT=docker-multimedia.sh
 readonly CONVERT_SCRIPT=convert_png_webp.sh
-
-# Check if the files exist
 
 if [ ! -f "${ARG1}" ]; then
     echo "Error: ${ARG1} does not exist"
