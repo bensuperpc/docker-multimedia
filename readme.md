@@ -17,22 +17,22 @@ All multimedia apps (FFMPEG, ImageMagick, AV1 encoders ect...) in a docker conta
 ### Software requirements
 
 | Software | Minimum | Recommended |
-| ------ | ------ | ------ |
-| Linux | Any | Any |
-| Docker | 19.x | 20.x |
-| Make | 4.x | 4.x |
+| -------- | ------- | ----------- |
+| Linux    | Any     | Any         |
+| Docker   | 19.x    | 20.x        |
+| Make     | 4.x     | 4.x         |
 
 ### Hardware requirements
 
-| Hardware | Minimum | Recommended |
-| :------: | :------: | :------: |
-| CPU | 2c/2t | 6c/12t |
-| Instruction set (x86) | x86-64-v2 | x86-64-v3 |
-| Instruction set (ARM) | armv8 | armv8 |
-| RAM | 8 GB | 32 GB |
-| GPU | - | Hardware enc/dec |
-| Disk space | 4 GB | 16 GB |
-| Internet | 10 Mbps | 100 Mbps |
+|       Hardware        |  Minimum  |   Recommended    |
+| :-------------------: | :-------: | :--------------: |
+|          CPU          |   2c/2t   |      6c/12t      |
+| Instruction set (x86) | x86-64-v2 |    x86-64-v3     |
+| Instruction set (ARM) |   armv8   |      armv8       |
+|          RAM          |   8 GB    |      32 GB       |
+|          GPU          |     -     | Hardware enc/dec |
+|      Disk space       |   4 GB    |      16 GB       |
+|       Internet        |  10 Mbps  |     100 Mbps     |
 
 ## How to use docker-multimedia
 
@@ -72,24 +72,25 @@ make update
 
 ### FFMPEG options
 
-| Option | default | Example | Description |
-| :------: | :------: | :------: | :------: |
-| -vf | - | -vf scale=1920:-1 | Downscale the video to 1080p |
-| -g | ? | -g 60 | Set the keyframe interval of x frames, lower value increase quality but increase file size |
-| -pix_fmt | Depends on source | -pix_fmt yuv420p | Set the pixel format, yuv420p for 8-bit, yuv420p10le for 10-bit ect... |
-| -crf | - | - | Constant Rate Factor, **options depend on the encoder** |
-| -preset | - | - | Set the encoding speed, **options depend on the encoder** |
-| -tune | - | - | Set the encoding tune, **options depend on the encoder** |
-| -c:v | - | -c:v libx265 | Set the video codec, **options depend on installed codecs** |
-| -c:a | - | -c:a copy | Set the audio codec, **options depend on installed codecs** |
-| -c:s | - | -c:s copy | Set the subtitle codec, **options depend on installed codecs** |
-| -map | - | -map 0 | Map the input stream to the output |
-| -map_metadata | - | -map_metadata 0 | Map the metadata to the output |
-| -map_chapters | - | -map_chapters 0 | Map the chapters to the output |
-| -fps_mode | auto | -fps_mode passthrough | Set the frame rate mode, passthrough, cfr, vfr, auto |
-| -loglevel | - | -loglevel error | Set the log level, error, warning, info, verbose, debug, trace |
-| -hide_banner | - | -hide_banner | Hide the banner |
-| -y | - | -y | Overwrite output files without asking |
+|    Option     |      default      |        Example        |                                        Description                                         |
+| :-----------: | :---------------: | :-------------------: | :----------------------------------------------------------------------------------------: |
+|      -vf      |         -         |   -vf scale=1920:-1   |                                Downscale the video to 1080p                                |
+|      -g       |         ?         |         -g 60         | Set the keyframe interval of x frames, lower value increase quality but increase file size |
+|   -pix_fmt    | Depends on source |   -pix_fmt yuv420p    |           Set the pixel format, yuv420p for 8-bit, yuv420p10le for 10-bit ect...           |
+|     -crf      |         -         |           -           |                  Constant Rate Factor, **options depend on the encoder**                   |
+|    -preset    |         -         |           -           |                 Set the encoding speed, **options depend on the encoder**                  |
+|     -tune     |         -         |           -           |                  Set the encoding tune, **options depend on the encoder**                  |
+|     -c:v      |         -         |     -c:v libx265      |                Set the video codec, **options depend on installed codecs**                 |
+|     -c:a      |         -         |       -c:a copy       |                Set the audio codec, **options depend on installed codecs**                 |
+|     -c:s      |         -         |       -c:s copy       |               Set the subtitle codec, **options depend on installed codecs**               |
+|   -threads    |         0         |      -threads 8       |                           Set the number of threads, 0 for auto                            |
+|     -map      |         -         |        -map 0         |                             Map the input stream to the output                             |
+| -map_metadata |         -         |    -map_metadata 0    |                               Map the metadata to the output                               |
+| -map_chapters |         -         |    -map_chapters 0    |                               Map the chapters to the output                               |
+|   -fps_mode   |       auto        | -fps_mode passthrough |                    Set the frame rate mode, passthrough, cfr, vfr, auto                    |
+|   -loglevel   |         -         |    -loglevel error    |               Set the log level, error, warning, info, verbose, debug, trace               |
+| -hide_banner  |         -         |     -hide_banner      |                                      Hide the banner                                       |
+|      -y       |         -         |          -y           |                           Overwrite output files without asking                            |
 
 ### Convert video to AV1 CRF (SVT-AV1)
 
@@ -97,18 +98,18 @@ This table shows the most common options for SVT-AV1, like the preset, crf, and 
 
 **For svtav1-params each option is separated by a colon `:`, option and value are separated by `=`, like `tune=0:enable-qm=1:qm-min=0`.**
 
-| Option | default | Min/Max | Example | Description |
-| :------: | :------: | :------: | :------: | :------: |
-| -preset | 4 | -preset 4 | 0-12 | 0 for slowest, 12 for fastest encoding |
-| -crf | 18 | -crf 30 | 0-63 | Constant Rate Factor, lower value increase quality |
-| -svtav1-params | - | - | -svtav1-params tune=0:enable-qm=1 | SVT-AV1 specific options |
-| tune | 1 | 0-1 | -svtav1-params tune=0 | 0 for subjective quality, 1 for objective quality (PSNR) |
-| enable-qm | 0 | 0-1 | -svtav1-params enable-qm=1 | Enable quantization matrices |
-| qm-min | 8 | 0-15 | -svtav1-params qm-min=0 | Minimum quantization matrix |
-| qm-max | 15 | 0-15 | -svtav1-params qm-max=10 | Maximum quantization matrix |
-| aq-mode | 2 | 0-2 | -svtav1-params aq-mode=2 | Adaptive quantization mode |
-| enable-overlays | 0 | 0-1 | -svtav1-params enable-overlays=1 | Enable overlays |
-| film-grain | 0 | 0-12 | -svtav1-params film-grain=8 | Add film grain to the video |
+|     Option      | default |  Min/Max  |              Example              |                       Description                        |
+| :-------------: | :-----: | :-------: | :-------------------------------: | :------------------------------------------------------: |
+|     -preset     |    4    | -preset 4 |               0-12                |          0 for slowest, 12 for fastest encoding          |
+|      -crf       |   18    |  -crf 30  |               0-63                |    Constant Rate Factor, lower value increase quality    |
+| -svtav1-params  |    -    |     -     | -svtav1-params tune=0:enable-qm=1 |                 SVT-AV1 specific options                 |
+|      tune       |    1    |    0-1    |       -svtav1-params tune=0       | 0 for subjective quality, 1 for objective quality (PSNR) |
+|    enable-qm    |    0    |    0-1    |    -svtav1-params enable-qm=1     |               Enable quantization matrices               |
+|     qm-min      |    8    |   0-15    |      -svtav1-params qm-min=0      |               Minimum quantization matrix                |
+|     qm-max      |   15    |   0-15    |     -svtav1-params qm-max=10      |               Maximum quantization matrix                |
+|     aq-mode     |    2    |    0-2    |     -svtav1-params aq-mode=2      |                Adaptive quantization mode                |
+| enable-overlays |    0    |    0-1    | -svtav1-params enable-overlays=1  |                     Enable overlays                      |
+|   film-grain    |    0    |   0-12    |    -svtav1-params film-grain=8    |               Add film grain to the video                |
 
 More information about the options can be found in the [SVT-AV1 documentation](
 https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Parameters.md?ref_type=heads)
@@ -171,6 +172,18 @@ ffmpeg -i input.mkv -y -c:v libx265 -preset slow -vf scale=1280:-1 -b:v 2000k -m
 
 ```bash
 ffmpeg -i input.mkv -c:v libx264 -crf 26 -preset slow -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+```
+
+### Convert video FFV1 (v3)
+
+```bash
+ffmpeg -i input.mkv -c:v ffv1 -level 3 -coder 1 -context 1 -g 1 -slices 4 -slicecrc 1 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+```
+
+### Convert video FFV1 (v3) 2 pass
+
+```bash
+ffmpeg -i input.mkv -c:v ffv1 -level 3 -coder 1 -context 1 -g 1 -slices 4 -slicecrc 1 -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -c:v ffv1 -level 3 -coder 1 -context 1 -g 1 -slices 4 -slicecrc 1 -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 ### Get SSIM
@@ -305,12 +318,13 @@ _Add `-t flac` if the input file is not recognized as flac._
 
 ### Convert audio
 
-| Audio lib | Max bitrate | Extension |
-| :------: | :------: | :------: |
-| libmp3lame | 320kbps | mp3 |
-| aac | 250kbps | m4a |
-| libopus | 250kbps | opus |
-| flac | lossless | flac |
+| Audio lib  | Max bitrate | Extension |
+| :--------: | :---------: | :-------: |
+| libmp3lame |   320kbps   |    mp3    |
+|    aac     |   250kbps   |    m4a    |
+|  libopus   |   250kbps   |   opus    |
+|    flac    |  lossless   |   flac    |
+| pcm_s16le  |    16bit    |    wav    |
 
 Convert audio to mp3
 
@@ -328,6 +342,12 @@ Remove noise from audio
 
 ```bash
 ./docker-multimedia.sh ffmpeg -i input.mp3 -af "highpass=f=200, lowpass=f=3000" output.mp3
+```
+
+Convert to compatible audio format for garry's mod
+
+```bash
+./docker-multimedia.sh ffmpeg -i input.mp3 -c:a pcm_s16le -b:a 128k -ar 44100 -ac 2 output.wav
 ```
 
 ## Metadata commands examples
