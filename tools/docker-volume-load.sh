@@ -14,15 +14,21 @@ set -euo pipefail
 #//                                                          //
 #//////////////////////////////////////////////////////////////
 
-if (( $# ==  0)); then
-    echo "Usage: ${0##*/} <docker image>"
+if (( $# == 0 )); then
+    echo "Usage: ${0##*/} <docker volume>"
     exit 1
 fi
 
-DOCKER_IMAGE="$1"
-OUTPUT_PATH="${DOCKER_IMAGE}.tar.xz"
-mkdir -p "$(dirname "$OUTPUT_PATH")"
-docker pull "$DOCKER_IMAGE"
-TMP_FILE=$(mktemp "${OUTPUT_PATH}.XXXXXX")
-docker save "$DOCKER_IMAGE" | xz -9e -v -T0 > "$TMP_FILE"
-mv "$TMP_FILE" "$OUTPUT_PATH"
+DOCKER_VOLUME="$1"
+INPUT_PATH="${DOCKER_VOLUME}.tar.zst"
+
+if [ ! -f "$INPUT_PATH" ]; then
+    echo "Error: File '$INPUT_PATH' not found."
+    exit 1
+fi
+
+docker run --rm \
+    --volume "$DOCKER_VOLUME":/volume1 \
+    --volume "$(pwd)":/backup \
+    alpine:latest sh -c "apk add --no-cache zstd tar && \
+    tar xvf '/backup/$INPUT_PATH' -C /volume1"

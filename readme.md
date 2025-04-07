@@ -159,31 +159,31 @@ Optional for AV1AN:
 ### Convert video to h265 CRF (x265)
 
 ```bash
-ffmpeg -i input.mkv -y -c:v libx265 -crf 18 -preset slower -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh ffmpeg -i input.mkv -y -c:v libx265 -crf 18 -preset slower -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 ### Convert video to h265 ABR 2 pass and scale to 720p (x265)
 
 ```bash
-ffmpeg -i input.mkv -y -c:v libx265 -preset slow -vf scale=1280:-1 -b:v 2000k -minrate 500k -maxrate 6000k -bufsize 12000k -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -preset slow -vf scale=1280:-1 -c:v libx265 -b:v 2000k -minrate 500k -maxrate 6000k -bufsize 12000k -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh ffmpeg -i input.mkv -y -c:v libx265 -preset slow -vf scale=1280:-1 -b:v 2000k -minrate 500k -maxrate 6000k -bufsize 12000k -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -preset slow -vf scale=1280:-1 -c:v libx265 -b:v 2000k -minrate 500k -maxrate 6000k -bufsize 12000k -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 ### Convert video to h264 CRF (x264)
 
 ```bash
-ffmpeg -i input.mkv -c:v libx264 -crf 26 -preset slow -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v libx264 -crf 26 -preset slow -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 ### Convert video FFV1 (v3)
 
 ```bash
-ffmpeg -i input.mkv -c:v ffv1 -level 3 -coder 1 -context 1 -g 1 -slices 4 -slicecrc 1 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v ffv1 -level 3 -coder 1 -context 1 -g 1 -slices 4 -slicecrc 1 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 ### Convert video FFV1 (v3) 2 pass
 
 ```bash
-ffmpeg -i input.mkv -c:v ffv1 -level 3 -coder 1 -context 1 -g 1 -slices 4 -slicecrc 1 -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -c:v ffv1 -level 3 -coder 1 -context 1 -g 1 -slices 4 -slicecrc 1 -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v ffv1 -level 3 -coder 1 -context 1 -g 1 -slices 4 -slicecrc 1 -pass 1 -an -f null /dev/null && ffmpeg -i input.mkv -c:v ffv1 -level 3 -coder 1 -context 1 -g 1 -slices 4 -slicecrc 1 -pass 2 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 ### Get SSIM
@@ -219,7 +219,7 @@ VMAF score, higher is better
 Output into a json file
 
 ```bash
-ffmpeg -i video1.mp4 -i video2.mp4 -lavfi libvmaf="log_path=vmaf.json:log_fmt=json" -f null -
+./docker-multimedia.sh ffmpeg -i video1.mp4 -i video2.mp4 -lavfi libvmaf="log_path=vmaf.json:log_fmt=json" -f null -
 ```
 
 ### Cut video without re-encoding
