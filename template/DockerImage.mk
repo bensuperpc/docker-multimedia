@@ -122,6 +122,7 @@ $(BASE_IMAGE_TAGS): $(Dockerfile)
 	$(DOCKER_EXEC) buildx build . --build-context root-project=$(BUILD_CONTEXT) --file $(DOCKERFILE) \
 		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
 		--tag $(OUTPUT_IMAGE_FINAL) \
+		--tag $(OUTPUT_IMAGE_FINAL):latest \
 		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION) \
 		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME) \
 		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$@ \
@@ -162,6 +163,7 @@ $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 $(addsuffix .push,$(BASE_IMAGE_TAGS)): $$(basename $$@).test
 	@echo "Pushing $(OUTPUT_IMAGE_FINAL)"
 	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL)
+	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):latest
 	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)
 	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)
 	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)
@@ -173,6 +175,7 @@ $(addsuffix .push,$(BASE_IMAGE_TAGS)): $$(basename $$@).test
 $(addsuffix .pull,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	@echo "Pulling $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)"
 	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL)
+	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):latest
 	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)
 	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)
 	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)
@@ -182,8 +185,8 @@ $(addsuffix .pull,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 .PHONY: clean
 clean:
 	@echo "Clean all untagged images"
-	docker system prune -f
-#	$(DOCKE) builder prune -f
+	$(DOCKER_EXEC) system prune -f
+	$(DOCKER_EXEC) builder prune -f
 
 .PHONY: purge
 purge: clean
@@ -230,12 +233,7 @@ help:
 .SECONDEXPANSION:
 $(addsuffix .save,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	@echo "Not implemented yet"
-#	docker save $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION) | xz -e7 -v -T0 > $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION).tar.xz
-
-#   Bash version
-#	DOCKER_IMAGE=ben/ben:ben; install -Dv /dev/null "$DOCKER_IMAGE".tar.xz && docker pull "$DOCKER_IMAGE" && docker save "$DOCKER_IMAGE" | xz -e7 -v -T0 > "$DOCKER_IMAGE".tar.xz
 
 .SECONDEXPANSION:
 $(addsuffix .load,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	@echo "Not implemented yet"
-#	xz -v -d -k < $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)-$(OUTPUT_IMAGE_VERSION).tar.xz | docker load

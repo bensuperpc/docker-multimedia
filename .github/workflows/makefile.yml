@@ -26,9 +26,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-          fetch-depth: 1
-#      - name: Install dependencies
-#        run: sudo apt-get update && sudo apt-get install 
+          fetch-depth: 5
       - name: "Build the image"
         run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}
       - name: "Pull the latest image"

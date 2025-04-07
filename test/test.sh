@@ -1,62 +1,45 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Check if multimedia tools are installed
-
-ffmpeg -version
-echo "ffmpeg OK"
-
-HandBrakeCLI --version
-echo "HandBrakeCLI OK"
-
-# Check image encoders/decoders/tools
-cwebp -version
-echo "cwebp OK"
-
-avifenc --version
-echo "avifenc OK"
-
 #aomenc --help
 #aomdec --help
 #echo "aom OK"
 
-cjxl --version
-echo "cjxl OK"
-
-magick -version || convert -version
-echo "magick OK"
-
-# Check video encoders/decoders/tools
-SvtAv1EncApp --version
-echo "SvtAv1EncApp OK"
-
-rav1e --version
-echo "rav1e OK"
-
-dav1d --version
-echo "dav1d OK"
-
-x265 --version
-echo "x265 OK"
-
-x264 --version
-echo "x264 OK"
-
 #twolame -version
 #echo "twolame OK"
 
-# Check audio encoders/decoders/tools
-melt -version
-echo "melt OK"
+# Check multimedia tools
+ffmpeg -version && echo "ffmpeg OK"
+HandBrakeCLI --version && echo "HandBrakeCLI OK"
+mkvmerge --version && echo "mkvtoolnix-cli OK"
+mediainfo --version && echo "mediainfo OK"
 
-flac -version
-echo "flac OK"
+# Check image encoders/decoders
+cwebp -version && echo "cwebp OK"
+avifenc --version && echo "avifenc OK"
+cjxl --version && echo "cjxl OK"
+if command -v magick > /dev/null; then
+    magick -version && echo "magick OK"
+else
+    convert -version && echo "convert OK"
+fi
+gifsicle --version && echo "gifsicle OK"
 
-#opusenc --version
-#echo "opusenc OK"
+# Check video encoders/decoders
+SvtAv1EncApp --version && echo "SvtAv1EncApp OK"
+rav1e --version && echo "rav1e OK"
+dav1d --version && echo "dav1d OK"
+x265 --version && echo "x265 OK"
+x264 --version && echo "x264 OK"
 
-lame --version
-echo "lame OK"
+# Check audio tools
+melt -version && echo "melt OK"
+flac -version && echo "flac OK"
+lame --version && echo "lame OK"
+sox --version && echo "sox OK"
 
-#timidity -version
-#echo "timidity OK"
+# Check PDF tools
+pdftotext -v && echo "pdftotext (Poppler) OK"
+
+# Check utilities
+yt-dlp --version && echo "yt-dlp OK"

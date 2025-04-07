@@ -3,79 +3,67 @@ FROM ${BASE_IMAGE} AS base
 
 RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu --noconfirm && \
     pacman -S --noconfirm \
-#   ffmpeg and video tools
-    ffmpeg \
-    mlt \
-    libexif \
-    rtaudio \
-    multimon-ng \
-    nageru \
-#   AV1
-    av1an \
-    dav1d \
-    rav1e \
-    svt-av1 \
-    libheif \
-    libavif \
-    aom \
-#   Jpeg
-    jpegoptim \
-    libjpeg-turbo \
-    openjpeg2 \    
-    libjxl \
-#   WebP
-    libwebp \
-    webp-pixbuf-loader \
-    handbrake-cli \
-    ladspa \
-    frei0r-plugins \
-    avisynthplus \
-    opencv \
+    # --- General tools ---
+    devtools \
+    sdl \
+    gvfs \
+    openmpi \
+    hdf5 \
+    libzip \
+    # --- Image tools ---
     imagemagick \
+    opencv \
+    djvulibre \
     libwmf \
     libopenraw \
     libraw \
     libpng \
-    timidity++ \    
-    mencoder \
-    devtools \
-    sdl \
-    devil \
-    hdf5 \
-    libzip \
-    djvulibre \
-    wavpack \
-    openmpi \
-    gvfs \
-    mat2 \
-    ffms2 \
-    dsp \
-    a2jmidid \
-    libffado \
-    menyoki \
-#   DVD
-    libdvdcss \
-#   MPEG2
-    twolame \
-    # HDR    
+    exiv2 \
+    img2pdf \
+    # --- Multimedia converers ---
+    ffmpeg \
+    handbrake-cli \
+    mkvtoolnix-cli \
+    nageru \
+    multimon-ng \
+    # --- Codecs et encoder AV1 ---
+    av1an \
+    dav1d \
+    rav1e \
+    svt-av1 \
+    aom \
+    # --- Codecs and JPEG tools ---
+    jpegoptim \
+    libjpeg-turbo \
+    openjpeg2 \
+    libjxl \
+    # --- Codecs and WebP/HEIF tools ---
+    libwebp \
+    webp-pixbuf-loader \
+    libheif \
+    libavif \
+    # --- HDR tools ---
     libultrahdr \
-    # Sound    
+    # --- Audio ---
+    rtaudio \
     sox \
     vorbis-tools \
     flac \
     opus-tools \
-    # PDF   
-    ghostscript \ 
-    exiv2 \
-    img2pdf \
-# Utils
-    mediainfo \    
-    ffmpegthumbnailer \    
-    mkvtoolnix-cli \
-#   yt-dlp
+    lame \
+    timidity++ \
+    # --- Filters and effects ---
+    ladspa \
+    frei0r-plugins \
+    avisynthplus \
+    # --- Multimédia utilities ---
+    mediainfo \
+    ffmpegthumbnailer \
     yt-dlp \
     atomicparsley \
     aria2 \
+    rtmpdump \
+    # --- Python tools ---
     python-mutagen \
     python-pycryptodome \
     python-pycryptodomex \
@@ -83,7 +71,9 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     python-secretstorage \
     python-websockets \
     python-xattr \
-    rtmpdump \
+    # --- DVD / MPEG2 ---
+    libdvdcss \
+    twolame \
 #   Compress tools
     xz \
     gzip \

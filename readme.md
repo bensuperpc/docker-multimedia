@@ -107,7 +107,6 @@ This table shows the most common options for SVT-AV1, like the preset, crf, and 
 |    enable-qm    |    0    |    0-1    |    -svtav1-params enable-qm=1     |               Enable quantization matrices               |
 |     qm-min      |    8    |   0-15    |      -svtav1-params qm-min=0      |               Minimum quantization matrix                |
 |     qm-max      |   15    |   0-15    |     -svtav1-params qm-max=10      |               Maximum quantization matrix                |
-|     aq-mode     |    2    |    0-2    |     -svtav1-params aq-mode=2      |                Adaptive quantization mode                |
 | enable-overlays |    0    |    0-1    | -svtav1-params enable-overlays=1  |                     Enable overlays                      |
 |   film-grain    |    0    |   0-12    |    -svtav1-params film-grain=8    |               Add film grain to the video                |
 
@@ -117,7 +116,7 @@ https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Parameters.md?ref_typ
 Example of encoding CRF for very high quality (Maybe little overkill, preset 4 and crf 20 is a good start for 1080p).
 
 ```bash
-./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 1 -crf 14 -svtav1-params tune=0:enable-qm=1:qm-min=0:qm-max=8 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
+./docker-multimedia.sh ffmpeg -i input.mkv -c:v libsvtav1 -preset 2 -crf 14 -svtav1-params tune=0:enable-qm=1:qm-min=0:qm-max=8 -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 output.mkv
 ```
 
 - **-preset 1**: i recommend to use 4-6 for good quality and speed, 3 or lower for better quality but it **really** slow (~2x slower per lower step, for minimal gain).
