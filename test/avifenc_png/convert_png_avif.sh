@@ -3,7 +3,7 @@ set -euo pipefail
 
 readonly codec=${1:-aom}
 readonly z=${2:-10}
-readonly threads=${3:-1}
+readonly threads=${3:-$(nproc --all)}
 
 echo "Convert PNG to AVIF with codec=$codec, z=$z and threads=$threads"
 

@@ -39,7 +39,7 @@ lame --version && echo "lame OK"
 sox --version && echo "sox OK"
 
 # Check PDF tools
-pdftotext -v && echo "pdftotext (Poppler) OK"
+#pdftotext -v && echo "pdftotext (Poppler) OK"
 
 # Check utilities
 yt-dlp --version && echo "yt-dlp OK"

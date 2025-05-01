@@ -4,7 +4,7 @@ set -euo pipefail
 readonly preset=${1:-4}
 readonly crf=${2:-18}
 readonly option=${3:-}
-readonly threads=${4:-1}
+readonly threads=${4:-$(nproc --all)}
 
 echo "Convert to AV1 with preset: $preset, crf: $crf, option: $option, threads: $threads"
 

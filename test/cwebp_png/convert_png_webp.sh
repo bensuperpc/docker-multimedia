@@ -2,7 +2,7 @@
 set -euo pipefail
 
 readonly z=${1:-9}
-readonly threads=${2:-1}
+readonly threads=${2:-$(nproc --all)}
 
 echo "Convert PNG to WebP with z=$z using $threads threads"
 
@@ -10,8 +10,8 @@ trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 
 function convert_to_webp {
     local input_file="$1"
-    local output_file="${input_file%.*}_z${z}_lossless.webp"
-    #local output_file="${input_file%.*}.webp"
+    #local output_file="${input_file%.*}_z${z}_lossless.webp"
+    local output_file="${input_file%.*}.webp"
 
     if [ -f "$output_file" ]; then
         echo "File $output_file already exists. Skipping." >&2

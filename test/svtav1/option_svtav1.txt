@@ -1,7 +1,7 @@
-tune=1
-tune=0
-tune=0:enable-qm=1
-tune=0:enable-qm=1:qm-min=0
-tune=0:enable-qm=1:qm-min=0:qm-max=8
-tune=0:enable-qm=1:qm-min=0:qm-max=10
 tune=0:enable-qm=1:qm-min=0:qm-max=12
+tune=0:enable-qm=1:qm-min=0:qm-max=10
+tune=0:enable-qm=1:qm-min=0:qm-max=8
+tune=0:enable-qm=1:qm-min=0
+tune=0:enable-qm=1
+tune=0
+tune=1

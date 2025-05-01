@@ -23,11 +23,6 @@ DOCKER_VOLUME="$1"
 OUTPUT_PATH="${DOCKER_VOLUME}.tar.zst"
 mkdir -p "$(dirname "$OUTPUT_PATH")"
 
-if [ ! -d "$DOCKER_VOLUME" ]; then
-    echo "Error: Directory '$DOCKER_VOLUME' not found."
-    exit 1
-fi
-
 docker run --rm \
     --volume "$DOCKER_VOLUME":/volume1 \
     --volume "$(pwd)":/backup alpine:latest \

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 readonly ARG1=${1:-e_png_jpgxl.txt}
-readonly CPU_CORES=${2:-1}
+readonly INSTANCE_COUNT=${2:-1}
 readonly DOCKER_SCRIPT=docker-multimedia.sh
 readonly CONVERT_SCRIPT=convert_png_jpgxl.sh
 
@@ -12,4 +12,4 @@ if [ ! -f "${ARG1}" ]; then
 fi
 
 # --line-buffer
-parallel --jobs "$CPU_CORES" time "./$DOCKER_SCRIPT" "./$CONVERT_SCRIPT" {1} :::: "$ARG1"
+parallel --jobs "$INSTANCE_COUNT" time "./$DOCKER_SCRIPT" "./$CONVERT_SCRIPT" {1} :::: "$ARG1"

@@ -3,6 +3,7 @@ set -euo pipefail
 
 readonly preset=${1:-picture}
 readonly compression=${2:-9}
+readonly threads=${3:-$(nproc --all)}
 
 trap 'echo "An error occurred. Exiting." >&2; exit 1' ERR
 
@@ -30,4 +31,4 @@ export -f convert_to_jxl
 export preset compression
 
 # --progress --line-buffer --bar --halt now,fail=1
-find . -iname "*.jpg" -type f -print0 | parallel --null convert_to_jxl "{}"
+find . -iname "*.jpg" -type f -print0 | parallel --jobs "$threads" --null convert_to_jxl "{}"

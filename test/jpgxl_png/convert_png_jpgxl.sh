@@ -2,7 +2,7 @@
 set -euo pipefail
 
 readonly compression=${1:-9}
-readonly threads=${2:-1}
+readonly threads=${2:-$(nproc --all)}
 
 echo "Convert PNG to JPEG XL with compression=$compression and threads=$threads"
 
