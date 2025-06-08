@@ -28,7 +28,12 @@ GID ?= $(shell id -g ${CURRENT_USER})
 # USER DEFINED VARIABLES
 # =====================
 
-SUBDIRS ?= debian ubuntu fedora archlinux
+SUBDIRS ?= archlinux
+
+DOCKER_COMPOSITE_SOURCES = common.label-and-env
+
+DOCKER_COMPOSITE_FOLDER_PATH = common/
+DOCKER_COMPOSITE_PATH = $(addprefix $(DOCKER_COMPOSITE_FOLDER_PATH),$(DOCKER_COMPOSITE_SOURCES))
 
 AUTHOR ?= bensuperpc
 WEB_SITE ?= bensuperpc.org
@@ -86,76 +91,101 @@ MAKEFILE_VARS ?= AUTHOR="$(AUTHOR)" PLATFORMS="$(PLATFORMS)" \
 	TEST_IMAGE_CMD="$(TEST_IMAGE_CMD)" RUN_IMAGE_CMD="$(RUN_IMAGE_CMD)" PROGRESS_OUTPUT="$(PROGRESS_OUTPUT)" \
 	BASE_IMAGE_REGISTRY="$(BASE_IMAGE_REGISTRY)" BUILD_IMAGE_ARGS="$(BUILD_IMAGE_ARGS)" \
 	OUTPUT_IMAGE_REGISTRY="$(OUTPUT_IMAGE_REGISTRY)" OUTPUT_IMAGE_PATH="$(OUTPUT_IMAGE_PATH)" \
-	OUTPUT_IMAGE_NAME="$(OUTPUT_IMAGE_NAME)" OUTPUT_IMAGE_VERSION="$(OUTPUT_IMAGE_VERSION)"
-
-default: all
+	OUTPUT_IMAGE_NAME="$(OUTPUT_IMAGE_NAME)" OUTPUT_IMAGE_VERSION="$(OUTPUT_IMAGE_VERSION)" \
+	DOCKER_COMPOSITE_FOLDER_PATH="$(DOCKER_COMPOSITE_FOLDER_PATH)" \
+	DOCKER_COMPOSITE_SOURCES="$(DOCKER_COMPOSITE_SOURCES)" \
+	DOCKER_COMPOSITE_PATH="$(DOCKER_COMPOSITE_PATH)"
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS):
-	$(MAKE) $(MAKEFILE_VARS) -C $@ all
-
-.PHONY: all
-all: $(addsuffix .all, $(SUBDIRS))
-
-%.all:
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.all,%,$@) all
-
-.PHONY: build
-build: $(addsuffix .build, $(SUBDIRS))
-
-%.build:
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.build,%,$@) build
+	rsync --archive --acls --xattrs $(DOCKER_COMPOSITE_FOLDER_PATH) $@/common/
 
 .PHONY: test
 test: $(addsuffix .test, $(SUBDIRS))
 
-%.test:
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.test,%,$@) test
+.SECONDEXPANSION:
+$(addsuffix .test, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) test
 
 .PHONY: run
 run: $(addsuffix .run, $(SUBDIRS))
 
-%.run:
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.run,%,$@) run
+.SECONDEXPANSION:
+$(addsuffix .run, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) run
+
+.PHONY: build
+build: $(addsuffix .build, $(SUBDIRS))
+
+.SECONDEXPANSION:
+$(addsuffix .build, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) build
+
+.PHONY: all
+all: $(addsuffix .all, $(SUBDIRS))
+
+.PHONY: generate
+test: $(addsuffix .generate, $(SUBDIRS))
+
+.SECONDEXPANSION:
+$(addsuffix .generate, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) generate
+
+.SECONDEXPANSION:
+$(addsuffix .all, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) all
 
 .PHONY: version
 version: $(addsuffix .version, $(SUBDIRS))
 
-%.version:
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.version,%,$@) version
+.SECONDEXPANSION:
+$(addsuffix .version, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) version
+
+#.PHONY: version
+#version: $(addsuffix .version, $(SUBDIRS))
+
+#%.version:
+#	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.version,%,$@) version
 
 .PHONY: clean
 clean: $(addsuffix .clean, $(SUBDIRS))
 
-%.clean:
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.clean,%,$@) clean
+.SECONDEXPANSION:
+$(addsuffix .clean, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) clean
 
 .PHONY: purge
 purge: $(addsuffix .purge, $(SUBDIRS))
 
-%.purge:
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.purge,%,$@) purge
+.SECONDEXPANSION:
+$(addsuffix .purge, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) purge
 
 .PHONY: update
 update: $(addsuffix .update, $(SUBDIRS))
 
-%.update:
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.update,%,$@) update
+.SECONDEXPANSION:
+$(addsuffix .update, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) update
 
 .PHONY: push
 push: $(addsuffix .push, $(SUBDIRS))
 
-%.push:
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.push,%,$@) push
+.SECONDEXPANSION:
+$(addsuffix .push, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) push
 
 .PHONY: pull
 pull: $(addsuffix .pull, $(SUBDIRS))
 
-%.pull:
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.pull,%,$@) pull
+.SECONDEXPANSION:
+$(addsuffix .pull, $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) pull
 
 .PHONY: $(CUSTOM_TARGET)
 $(CUSTOM_TARGET): $(addsuffix .$(CUSTOM_TARGET), $(SUBDIRS))
 
-%.$(CUSTOM_TARGET):
-	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.$(CUSTOM_TARGET),%,$@) $(CUSTOM_TARGET)
+.SECONDEXPANSION:
+$(addsuffix .$(CUSTOM_TARGET), $(SUBDIRS)): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) $(CUSTOM_TARGET)

@@ -11,7 +11,7 @@
 #//                                                          //
 #//////////////////////////////////////////////////////////////
 
-SUBDIRS ?= debian ubuntu fedora archlinux
+SUBDIRS ?= archlinux debian
 
 # Output docker image
 PROJECT_NAME ?= multimedia

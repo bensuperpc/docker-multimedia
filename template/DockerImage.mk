@@ -12,22 +12,6 @@
 #//////////////////////////////////////////////////////////////
 
 # =====================
-# AUTOMATED VARIABLES
-# =====================
-
-PLATFORMS := $(subst " ",",",$(ARCH_LIST))
-
-GIT_SHA := $(shell git rev-parse HEAD || echo "unknown")
-GIT_ORIGIN := $(shell git config --get remote.origin.url || echo "unknown")
-
-DATE := $(shell date -u +"%Y%m%d")
-UUID = $(shell uuidgen)
-
-CURRENT_USER := $(shell whoami)
-UID := $(shell id -u ${CURRENT_USER})
-GID := $(shell id -g ${CURRENT_USER})
-
-# =====================
 # USER DEFINED VARIABLES
 # =====================
 
@@ -67,32 +51,21 @@ RUN_IMAGE_ARGS ?=
 
 #TEST_USER_ARG := --user $(UID):$(GID)
 
-# Max CPU and memory
-CPUS ?= 8.0
-CPU_SHARES ?= 1024
-MEMORY ?= 16GB
-MEMORY_RESERVATION ?= 2GB
-TMPFS_SIZE ?= 4GB
-
-BUILD_IMAGE_CPU_SHARES ?= 1024
-BUILD_IMAGE_MEMORY ?= 16GB
-BUILD_IMAGE_ARGS ?=
-
 # Docker config
-DOCKERFILE ?= Dockerfile
-DOCKER_EXEC ?= docker
-PROGRESS_OUTPUT ?= plain
-BUILD_CONTEXT ?= $(shell pwd)
+#DOCKERFILE ?= Dockerfile
+#DOCKER_EXEC ?= docker
+#PROGRESS_OUTPUT ?= plain
+#BUILD_CONTEXT ?= $(shell pwd)
 
-WORKDIR ?= /work
+#WORKDIR ?= /work
 
-BIND_HOST_DIR ?= $(shell pwd)
-BIND_CONTAINER_DIR ?= /work
+#BIND_HOST_DIR ?= $(shell pwd)
+#BIND_CONTAINER_DIR ?= /work
 
-ARCH_LIST ?= linux/amd64
+#ARCH_LIST ?= linux/amd64
 
 # --push
-DOCKER_DRIVER ?= --load
+#DOCKER_DRIVER ?= --load
 
 # =====================
 # TARGETS
@@ -101,24 +74,15 @@ DOCKER_DRIVER ?= --load
 .PHONY: all
 all: $(addsuffix .test,$(BASE_IMAGE_TAGS))
 
-.PHONY: build
-build: $(BASE_IMAGE_TAGS)
+.PHONY: generate
+generate: Dockerfile
 
-.PHONY: test
-test: $(addsuffix .test,$(BASE_IMAGE_TAGS))
+Dockerfile: Dockerfile.in $(DOCKER_COMPOSITE_PATH)
+	sed $(foreach f,$(DOCKER_COMPOSITE_SOURCES),-e '/$(f)/ r $(DOCKER_COMPOSITE_FOLDER_PATH)$(f)') $< > $@
 
-.PHONY: run
-run: $(addsuffix .run,$(BASE_IMAGE_TAGS))
-
-.PHONY: push
-push: $(addsuffix .push,$(BASE_IMAGE_TAGS))
-
-.PHONY: pull
-pull: $(addsuffix .pull,$(BASE_IMAGE_TAGS))
-
-# --no-cache 
+# --no-cache  $(Dockerfile)
 .PHONY: $(BASE_IMAGE_TAGS)
-$(BASE_IMAGE_TAGS): $(Dockerfile)
+$(BASE_IMAGE_TAGS): Dockerfile
 	$(DOCKER_EXEC) buildx build . --build-context root-project=$(BUILD_CONTEXT) --file $(DOCKERFILE) \
 		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
 		--tag $(OUTPUT_IMAGE_FINAL) \
@@ -134,6 +98,22 @@ $(BASE_IMAGE_TAGS): $(Dockerfile)
 		--build-arg VCS_REF=$(GIT_SHA) --build-arg VCS_URL=$(GIT_ORIGIN) \
 		--build-arg AUTHOR=$(AUTHOR) --build-arg URL=$(WEB_SITE) \
 		$(BUILD_IMAGE_ARGS) $(DOCKER_DRIVER)
+
+
+.PHONY: build
+build: $(BASE_IMAGE_TAGS)
+
+.PHONY: test
+test: $(addsuffix .test,$(BASE_IMAGE_TAGS))
+
+.PHONY: run
+run: $(addsuffix .run,$(BASE_IMAGE_TAGS))
+
+.PHONY: push
+push: $(addsuffix .push,$(BASE_IMAGE_TAGS))
+
+.PHONY: pull
+pull: $(addsuffix .pull,$(BASE_IMAGE_TAGS))
 
 .SECONDEXPANSION:
 $(addsuffix .build,$(BASE_IMAGE_TAGS)): $$(basename $$@)
@@ -185,6 +165,7 @@ $(addsuffix .pull,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 .PHONY: clean
 clean:
 	@echo "Clean all untagged images"
+	rm -rf Dockerfile $(DOCKER_COMPOSITE_FOLDER_PATH)
 	$(DOCKER_EXEC) system prune -f
 	$(DOCKER_EXEC) builder prune -f
 

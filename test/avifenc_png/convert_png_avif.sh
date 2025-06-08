@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# No lossless for now
+# rav1e
+# svt
 readonly codec=${1:-aom}
 readonly z=${2:-10}
 readonly threads=${3:-$(nproc --all)}
+readonly benchmark_file=${4:-webp_benchmark.txt}
 
 echo "Convert PNG to AVIF with codec=$codec, z=$z and threads=$threads"
 
@@ -19,13 +23,17 @@ function convert_to_avif {
         return
     fi
 
+    local start_time=$(date +%s)
     avifenc --jobs 1 --lossless --speed "$z" --codec "$codec" "$input_file" --output "$output_file"
+    local end_time=$(date +%s)
 
     touch -r "$input_file" "$output_file"
     
     exiftool -m -TagsFromFile "$input_file" -All:All --CreatorTool --MetadataDate -XMPToolkit= "$output_file" &>/dev/null
 
     check_image_diff "$input_file" "$output_file"
+
+    #benchmark "$input_file" "$output_file" "$start_time" "$end_time" "$benchmark_file"
 }
 
 function check_image_diff {
@@ -50,12 +58,34 @@ function check_image_diff {
     fi
 }
 
-export -f convert_to_avif check_image_diff
-export codec z threads
+function benchmark {
+    local input_file="$1"
+    local output_file="$2"
+    local start_time="$3"
+    local end_time="$4"
+    local output_benchmark_file="$5"
+
+    if [ -f "$output_file" ]; then
+        local input_file_size=$(stat -c %s "$input_file")
+        local output_file_size=$(stat -c %s "$output_file")
+        local time_taken=$(((end_time - start_time) + 1))
+
+        local output_benchmark_result="Input file name: $input_file\n"
+        output_benchmark_result+="Input file size: $input_file_size bytes\n"
+        output_benchmark_result+="Output file name: $output_file\n"
+        output_benchmark_result+="Output file size: $output_file_size bytes\n"
+        output_benchmark_result+="Time taken: $time_taken seconds\n"
+        echo -e "$output_benchmark_result" >> "$output_benchmark_file"
+    else
+        echo "Error: Failed to create output file $output_file" >&2
+        return
+    fi
+
+    rm -f "$output_file"
+}
+
+export -f convert_to_avif check_image_diff benchmark
+export codec z threads benchmark_file
 
 # --progress --line-buffer --bar --halt now,fail=1
 find . -iname "*.png" -type f -print0 | parallel --jobs "$threads" --null convert_to_avif "{}"
-
-# No lossless for now
-# rav1e
-# svt
