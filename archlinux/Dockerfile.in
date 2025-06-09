@@ -106,15 +106,7 @@ ENV PATH="/usr/bin/vendor_perl:$PATH"
 VOLUME [ "/work" ]
 WORKDIR /work
 
-#COPY --from=root-project common/entrypoint.sh /entrypoint.sh
-COPY common/entrypoint.sh /entrypoint.sh
-RUN chmod 755 /entrypoint.sh && chown root:root /entrypoint.sh
-
-#ARG USERNAME=user
-#RUN useradd -m "${USERNAME}"
-# Add color to bash
-#RUN echo PS1="'\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\] '" >> "/home/${USERNAME}/.bashrc"
-#USER ${USERNAME}
+#include "common.entrypoint"
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash", "-l"]

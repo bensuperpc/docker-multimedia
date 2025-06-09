@@ -78,6 +78,7 @@ all: $(addsuffix .test,$(BASE_IMAGE_TAGS))
 generate: Dockerfile
 
 Dockerfile: Dockerfile.in $(DOCKER_COMPOSITE_PATH)
+	rm -f $@
 	sed $(foreach f,$(DOCKER_COMPOSITE_SOURCES),-e '/$(f)/ r $(DOCKER_COMPOSITE_FOLDER_PATH)$(f)') $< > $@
 
 # --no-cache  $(Dockerfile)
