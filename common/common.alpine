@@ -1,0 +1,70 @@
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/latest-stable/community" >> /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
+    apk update && apk upgrade
+
+RUN apk add --no-cache \
+    # --- General tools ---
+    gvfs \
+    openmpi \
+    hdf5 \
+    libzip \
+    # --- Image tools ---
+    imagemagick \
+    opencv \
+    djvulibre \
+    libwmf \
+    libraw \
+    libpng \
+    exiv2 \
+#    img2pdf \
+    # --- Multimedia converters ---
+    ffmpeg \
+    mkvtoolnix \
+#    multimon-ng \
+    # --- Codecs and AV1 tools ---
+    dav1d \
+    rav1e \
+    aom \
+    # --- JPEG/WebP tools ---
+    jpegoptim \
+    libjpeg-turbo \
+    openjpeg \
+    libwebp \
+    libheif \
+    libavif \
+    # --- Audio tools ---
+    sox \
+    vorbis-tools \
+    flac \
+    opus-tools \
+    lame \
+#    timidity++ \
+    # --- Effects and plugins ---
+#    ladspa-sdk \
+#    frei0r \
+    # --- Multimedia utilities ---
+    mediainfo \
+    ffmpegthumbnailer \
+    yt-dlp \
+    aria2 \
+    rtmpdump \
+    # --- Python tools ---
+    py3-mutagen \
+#    py3-cryptodome \
+#    py3-cryptodomex \
+    py3-websockets \
+#    py3-xattr \
+    # --- DVD / MPEG2 ---
+    libdvdcss \
+#    twolame \
+    # --- Compress tools ---
+    xz \
+    gzip \
+    bzip2 \
+    tar \
+    zstd \
+    bash-completion \
+    curl \
+    gnupg \
+    # --- useradd/groupadd ---
+    shadow

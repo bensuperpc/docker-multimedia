@@ -1,7 +1,7 @@
-ARG BASE_IMAGE=debian:bookworm
+ARG BASE_IMAGE=alpine:3.22
 FROM ${BASE_IMAGE} AS base
 
-#include "common.debian"
+#include "common.alpine"
 
 #include "common.gosu"
 
@@ -10,13 +10,11 @@ FROM base AS final
 #include "common.label-and-env"
 
 # Fix PATH for perl
-ENV PATH="/usr/bin/vendor_perl:$PATH"
+#ENV PATH="/usr/bin/vendor_perl:$PATH"
 
 VOLUME [ "/work" ]
 WORKDIR /work
 
 #include "common.entrypoint"
 
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash", "-l"]
-

@@ -23,3 +23,5 @@ downloads/*
 *.png~
 
 *.torrent
+*/Dockerfile
+*/common/*

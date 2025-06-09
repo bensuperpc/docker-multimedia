@@ -42,30 +42,44 @@ endif
 
 # --cap-drop ALL
 # --cap-add SYS_PTRACE
-#--device=/dev/kvm
+# --device=/dev/kvm
+# --read-only
+# --user $(UID):$(GID)
 TEST_IMAGE_CMD ?= ls
-TEST_IMAGE_ARGS ?=
+TEST_IMAGE_ARGS ?= -e PUID=$(UID) -e PGID=$(GID) -e USERNAME=bensuperpc
 
 RUN_IMAGE_CMD ?= ls
-RUN_IMAGE_ARGS ?=
-
-#TEST_USER_ARG := --user $(UID):$(GID)
+RUN_IMAGE_ARGS ?= -e PUID=$(UID) -e PGID=$(GID) -e USERNAME=bensuperpc
 
 # Docker config
-#DOCKERFILE ?= Dockerfile
-#DOCKER_EXEC ?= docker
-#PROGRESS_OUTPUT ?= plain
-#BUILD_CONTEXT ?= $(shell pwd)
+DOCKERFILE ?= Dockerfile
+DOCKER_EXEC ?= docker
+PROGRESS_OUTPUT ?= plain
+BUILD_CONTEXT ?= $(shell pwd)
 
-#WORKDIR ?= /work
+WORKDIR ?= /work
 
-#BIND_HOST_DIR ?= $(shell pwd)
-#BIND_CONTAINER_DIR ?= /work
+BIND_HOST_DIR ?= $(shell pwd)
+BIND_CONTAINER_DIR ?= /work
 
-#ARCH_LIST ?= linux/amd64
+ARCH_LIST ?= linux/amd64
 
 # --push
-#DOCKER_DRIVER ?= --load
+DOCKER_DRIVER ?= --load
+
+DOCKER_COMPOSITE_SOURCES ?= common.label-and-env common.entrypoint common.user
+
+DOCKER_COMPOSITE_FOLDER_PATH ?= common/
+DOCKER_COMPOSITE_PATH ?= $(addprefix $(DOCKER_COMPOSITE_FOLDER_PATH),$(DOCKER_COMPOSITE_SOURCES))
+
+# Max CPU and memory
+CPUS ?= 8.0
+CPU_SHARES ?= 1024
+MEMORY ?= 16GB
+MEMORY_RESERVATION ?= 2GB
+TMPFS_SIZE ?= 4GB
+BUILD_CPU_SHARES ?= 1024
+BUILD_MEMORY ?= 16GB
 
 # =====================
 # TARGETS
@@ -78,6 +92,7 @@ all: $(addsuffix .test,$(BASE_IMAGE_TAGS))
 generate: Dockerfile
 
 Dockerfile: Dockerfile.in $(DOCKER_COMPOSITE_PATH)
+	rm -f $@
 	sed $(foreach f,$(DOCKER_COMPOSITE_SOURCES),-e '/$(f)/ r $(DOCKER_COMPOSITE_FOLDER_PATH)$(f)') $< > $@
 
 # --no-cache  $(Dockerfile)
@@ -118,10 +133,9 @@ pull: $(addsuffix .pull,$(BASE_IMAGE_TAGS))
 .SECONDEXPANSION:
 $(addsuffix .build,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 
-# --user $(UID):$(GID)
 .SECONDEXPANSION:
 $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	$(DOCKER_EXEC) run --rm --read-only \
+	$(DOCKER_EXEC) run --rm \
 		--security-opt no-new-privileges \
 		--mount type=bind,source=$(BIND_HOST_DIR),target=$(BIND_CONTAINER_DIR) --workdir $(WORKDIR) \
 		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) --platform $(PLATFORMS) \

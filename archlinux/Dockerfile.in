@@ -1,100 +1,9 @@
 ARG BASE_IMAGE=archlinux:base
 FROM ${BASE_IMAGE} AS base
 
-RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu --noconfirm && \
-    pacman -S --noconfirm \
-    # --- General tools ---
-    devtools \
-    sdl \
-    gvfs \
-    openmpi \
-    hdf5 \
-    libzip \
-    # --- Image tools ---
-    imagemagick \
-    opencv \
-    djvulibre \
-    libwmf \
-    libopenraw \
-    libraw \
-    libpng \
-    exiv2 \
-    img2pdf \
-    # --- Multimedia converers ---
-    ffmpeg \
-    handbrake-cli \
-    mkvtoolnix-cli \
-    nageru \
-    multimon-ng \
-    # --- Codecs et encoder AV1 ---
-    av1an \
-    dav1d \
-    rav1e \
-    svt-av1 \
-    aom \
-    # --- Codecs and JPEG tools ---
-    jpegoptim \
-    libjpeg-turbo \
-    openjpeg2 \
-    libjxl \
-    # --- Codecs and WebP/HEIF tools ---
-    libwebp \
-    webp-pixbuf-loader \
-    libheif \
-    libavif \
-    # --- HDR tools ---
-    libultrahdr \
-    # --- Audio ---
-    rtaudio \
-    sox \
-    vorbis-tools \
-    flac \
-    opus-tools \
-    lame \
-    timidity++ \
-    # --- Filters and effects ---
-    ladspa \
-    frei0r-plugins \
-    avisynthplus \
-    # --- Multimédia utilities ---
-    mediainfo \
-    ffmpegthumbnailer \
-    yt-dlp \
-    atomicparsley \
-    aria2 \
-    rtmpdump \
-    # --- Python tools ---
-    python-mutagen \
-    python-pycryptodome \
-    python-pycryptodomex \
-    python-pyxattr \
-    python-secretstorage \
-    python-websockets \
-    python-xattr \
-    # --- DVD / MPEG2 ---
-    libdvdcss \
-    twolame \
-#   Compress tools
-    xz \
-    gzip \
-    bzip2 \
-    tar \    
-    zstd \
-    bash-completion \
-#   Drivers
-#    intel-media-driver \
-#    libvdpau-va-gl \
-#    opencl-driver \
-#    libvpl-tools \
-#   intel-media-sdk \
-#    onevpl-intel-gpu \
-#    libva-intel-driver \
-#    intel-compute-runtime \
-#   Drivers AMD
-#    libva-mesa-driver \
-#   Drivers Nvidia
-#    nvidia-utils \
-    && pacman -Scc --noconfirm
+#include "common.archlinux"
+
+#include "common.gosu"
 
 FROM base AS final
 
@@ -106,15 +15,6 @@ ENV PATH="/usr/bin/vendor_perl:$PATH"
 VOLUME [ "/work" ]
 WORKDIR /work
 
-#COPY --from=root-project common/entrypoint.sh /entrypoint.sh
-COPY common/entrypoint.sh /entrypoint.sh
-RUN chmod 755 /entrypoint.sh && chown root:root /entrypoint.sh
+#include "common.entrypoint"
 
-#ARG USERNAME=user
-#RUN useradd -m "${USERNAME}"
-# Add color to bash
-#RUN echo PS1="'\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\] '" >> "/home/${USERNAME}/.bashrc"
-#USER ${USERNAME}
-
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash", "-l"]

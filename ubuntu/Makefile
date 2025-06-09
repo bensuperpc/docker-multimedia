@@ -11,20 +11,22 @@
 #//                                                          //
 #//////////////////////////////////////////////////////////////
 
-SUBDIRS ?= archlinux debian ubuntu alpine
-
-DOCKER_COMPOSITE_SOURCES = common.label-and-env common.entrypoint common.user \
-    common.debian common.gosu common.archlinux common.alpine
+# Base image
+BASE_IMAGE_REGISTRY ?= docker.io
+BASE_IMAGE_PATH ?= 
+BASE_IMAGE_NAME ?= ubuntu
+BASE_IMAGE_TAGS ?= 24.04
 
 # Output docker image
-PROJECT_NAME ?= multimedia
 AUTHOR ?= bensuperpc
-REGISTRY ?= docker.io
-BASE_IMAGE_REGISTRY ?= docker.io
 WEB_SITE ?= bensuperpc.org
 
-IMAGE_VERSION ?= 1.0.0
-IMAGE_NAME ?= $(PROJECT_NAME)
+OUTPUT_IMAGE_REGISTRY ?= docker.io
+OUTPUT_IMAGE_PATH ?= bensuperpc
+OUTPUT_IMAGE_NAME ?= multimedia
+OUTPUT_IMAGE_VERSION ?= 1.0.0
+
+WORKDIR ?= /work
 
 # Max CPU and memory
 CPUS ?= 8.0
@@ -32,10 +34,10 @@ CPU_SHARES ?= 1024
 MEMORY ?= 16GB
 MEMORY_RESERVATION ?= 2GB
 TMPFS_SIZE ?= 4GB
-BUILD_IMAGE_CPU_SHARES ?= 1024
-BUILD_IMAGE_MEMORY ?= 16GB
+BUILD_CPU_SHARES ?= 1024
+BUILD_MEMORY ?= 16GB
 
-TEST_IMAGE_CMD ?= ./test/test.sh
-RUN_IMAGE_CMD ?=
+TEST_CMD ?= ls
+RUN_CMD ?= ls
 
-include template/DockerImages.mk
+include ../template/DockerImage.mk
