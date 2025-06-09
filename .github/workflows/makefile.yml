@@ -10,7 +10,7 @@ on:
     branches:
       - '*'
   schedule:
-    - cron: '30 22 * * *'
+    - cron: '30 21 */5 * *'
   workflow_dispatch:
 
 jobs:

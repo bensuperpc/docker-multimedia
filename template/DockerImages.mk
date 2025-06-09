@@ -28,12 +28,12 @@ GID ?= $(shell id -g ${CURRENT_USER})
 # USER DEFINED VARIABLES
 # =====================
 
-SUBDIRS ?= archlinux
+SUBDIRS ?= archlinux debian ubuntu
 
-DOCKER_COMPOSITE_SOURCES = common.label-and-env
+DOCKER_COMPOSITE_SOURCES ?= common.label-and-env common.entrypoint common.user
 
-DOCKER_COMPOSITE_FOLDER_PATH = common/
-DOCKER_COMPOSITE_PATH = $(addprefix $(DOCKER_COMPOSITE_FOLDER_PATH),$(DOCKER_COMPOSITE_SOURCES))
+DOCKER_COMPOSITE_FOLDER_PATH ?= common/
+DOCKER_COMPOSITE_PATH ?= $(addprefix $(DOCKER_COMPOSITE_FOLDER_PATH),$(DOCKER_COMPOSITE_SOURCES))
 
 AUTHOR ?= bensuperpc
 WEB_SITE ?= bensuperpc.org
@@ -96,9 +96,12 @@ MAKEFILE_VARS ?= AUTHOR="$(AUTHOR)" PLATFORMS="$(PLATFORMS)" \
 	DOCKER_COMPOSITE_SOURCES="$(DOCKER_COMPOSITE_SOURCES)" \
 	DOCKER_COMPOSITE_PATH="$(DOCKER_COMPOSITE_PATH)"
 
+.PHONY: default
+default: $(addsuffix .test, $(SUBDIRS))
+
 .PHONY: $(SUBDIRS)
 $(SUBDIRS):
-	rsync --archive --acls --xattrs $(DOCKER_COMPOSITE_FOLDER_PATH) $@/common/
+	rsync --archive --acls --xattrs --delete --exclude=.git $(DOCKER_COMPOSITE_FOLDER_PATH) $@/common/
 
 .PHONY: test
 test: $(addsuffix .test, $(SUBDIRS))

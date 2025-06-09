@@ -7,7 +7,7 @@ TAG="archlinux-base"
 
 DOCKER_IMAGE="multimedia-$(uuidgen)"
 
-CPUS="$(nproc --all)"
+CPUS="6"
 CPU_SHARES="1024"
 RES_RAM="4GB"
 MAX_RAM="16GB"
@@ -17,7 +17,7 @@ PUID="$(id -u)"
 PGID="$(id -g)"
 
 docker run --rm \
-        --security-opt no-new-privileges --read-only --cap-drop SYS_ADMIN --user "$PUID:$PGID" \
+        --security-opt no-new-privileges --read-only --cap-drop SYS_ADMIN -e PUID="$PUID" -e PGID="$PGID" \
         --mount type=bind,source=$(pwd),target=/work --workdir /work \
         --mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$TMP_RAM \
         --platform linux/amd64 \

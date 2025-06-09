@@ -1,0 +1,96 @@
+RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu --noconfirm && \
+    pacman -S --noconfirm \
+    # --- General tools ---
+    devtools \
+    sdl \
+    gvfs \
+    openmpi \
+    hdf5 \
+    libzip \
+    # --- Image tools ---
+    imagemagick \
+    opencv \
+    djvulibre \
+    libwmf \
+    libopenraw \
+    libraw \
+    libpng \
+    exiv2 \
+    img2pdf \
+    # --- Multimedia converers ---
+    ffmpeg \
+    handbrake-cli \
+    mkvtoolnix-cli \
+    nageru \
+    multimon-ng \
+    # --- Codecs et encoder AV1 ---
+    av1an \
+    dav1d \
+    rav1e \
+    svt-av1 \
+    aom \
+    # --- Codecs and JPEG tools ---
+    jpegoptim \
+    libjpeg-turbo \
+    openjpeg2 \
+    libjxl \
+    # --- Codecs and WebP/HEIF tools ---
+    libwebp \
+    webp-pixbuf-loader \
+    libheif \
+    libavif \
+    # --- HDR tools ---
+    libultrahdr \
+    # --- Audio ---
+    rtaudio \
+    sox \
+    vorbis-tools \
+    flac \
+    opus-tools \
+    lame \
+    timidity++ \
+    # --- Filters and effects ---
+    ladspa \
+    frei0r-plugins \
+    avisynthplus \
+    # --- Multimédia utilities ---
+    mediainfo \
+    ffmpegthumbnailer \
+    yt-dlp \
+    atomicparsley \
+    aria2 \
+    rtmpdump \
+    # --- Python tools ---
+    python-mutagen \
+    python-pycryptodome \
+    python-pycryptodomex \
+    python-pyxattr \
+    python-secretstorage \
+    python-websockets \
+    python-xattr \
+    # --- DVD / MPEG2 ---
+    libdvdcss \
+    twolame \
+#   Compress tools
+    xz \
+    gzip \
+    bzip2 \
+    tar \    
+    zstd \
+    bash-completion \
+    curl \
+    gnupg \
+#   Drivers
+#    intel-media-driver \
+#    libvdpau-va-gl \
+#    opencl-driver \
+#    libvpl-tools \
+#   intel-media-sdk \
+#    onevpl-intel-gpu \
+#    libva-intel-driver \
+#    intel-compute-runtime \
+#   Drivers AMD
+#    libva-mesa-driver \
+#   Drivers Nvidia
+#    nvidia-utils \
+    && pacman -Scc --noconfirm
