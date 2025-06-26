@@ -11,7 +11,7 @@ CPUS="$(nproc --all)"
 CPU_SHARES="1024"
 RES_RAM="4GB"
 MAX_RAM="16GB"
-TMP_RAM="4GB"
+TMPFS_SIZE="4g"
 
 PUID="$(id -u)"
 PGID="$(id -g)"

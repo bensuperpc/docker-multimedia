@@ -74,7 +74,7 @@ CPUS ?= 8.0
 CPU_SHARES ?= 1024
 MEMORY ?= 16GB
 MEMORY_RESERVATION ?= 2GB
-TMPFS_SIZE ?= 4GB
+TMPFS_SIZE ?= 4g
 BUILD_IMAGE_CPU_SHARES ?= 1024
 BUILD_IMAGE_MEMORY ?= 16GB
 
@@ -101,7 +101,8 @@ default: $(addsuffix .test, $(SUBDIRS))
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS):
-	rsync --archive --acls --xattrs --delete --exclude=.git $(DOCKER_COMPOSITE_FOLDER_PATH) $@/common/
+	rsync --progress --human-readable --archive --verbose --compress --acls --xattrs --bwlimit=500000 --stats --delete-during \
+	    $(DOCKER_COMPOSITE_FOLDER_PATH) $@/common/
 
 .PHONY: test
 test: $(addsuffix .test, $(SUBDIRS))
