@@ -3,7 +3,7 @@ set -euo pipefail
 
 REGISTRY="docker.io"
 IMAGE="bensuperpc/multimedia"
-TAG="archlinux-base"
+TAG="1.0.0-archlinux"
 
 DOCKER_IMAGE="multimedia-$(uuidgen)"
 
