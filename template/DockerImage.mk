@@ -138,7 +138,7 @@ $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	$(DOCKER_EXEC) run --rm \
 		--security-opt no-new-privileges \
 		--mount type=bind,source=$(BIND_HOST_DIR),target=$(BIND_CONTAINER_DIR) --workdir $(WORKDIR) \
-		--tmpfs /tmp:exec,size=$(TMPFS_SIZE),mode=1777 --platform $(PLATFORMS) \
+		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) --platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
 		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) $(TEST_IMAGE_ARGS) \
 		$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA) $(TEST_IMAGE_CMD)
@@ -148,7 +148,7 @@ $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	$(DOCKER_EXEC) run -it --rm \
 		--security-opt no-new-privileges \
 		--mount type=bind,source=$(BIND_HOST_DIR),target=$(BIND_CONTAINER_DIR) --workdir $(WORKDIR) \
-		--tmpfs /tmp:exec,size=$(TMPFS_SIZE),mode=1777 --platform $(PLATFORMS) \
+		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) --platform $(PLATFORMS) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
 		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) $(RUN_IMAGE_ARGS) \
 		$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA) $(RUN_IMAGE_CMD)
