@@ -1,44 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-aomenc --help && echo "aomenc OK"
-aomdec --help && echo "aomdec OK"
+aomenc --help
+aomdec --help
 
 #twolame -version
 #echo "twolame OK"
 
 # Check multimedia tools
-ffmpeg -version && echo "ffmpeg OK"
-HandBrakeCLI --version && echo "HandBrakeCLI OK"
-mkvmerge --version && echo "mkvtoolnix-cli OK"
-mediainfo --version && echo "mediainfo OK"
+ffmpeg -version
+HandBrakeCLI --version
+mkvmerge --version
+mediainfo --version
 
 # Check image encoders/decoders
-cwebp -version && echo "cwebp OK"
-avifenc --version && echo "avifenc OK"
-cjxl --version && echo "cjxl OK"
+cwebp -version
+avifenc --version
+cjxl --version
 if command -v magick > /dev/null; then
-    magick -version && echo "magick OK"
+    magick -version
 else
-    convert -version && echo "convert OK"
+    convert -version
 fi
-gifsicle --version && echo "gifsicle OK"
+gifsicle --version
 
 # Check video encoders/decoders
-SvtAv1EncApp --version && echo "SvtAv1EncApp OK"
-rav1e --version && echo "rav1e OK"
-dav1d --version && echo "dav1d OK"
-x265 --version && echo "x265 OK"
-x264 --version && echo "x264 OK"
+SvtAv1EncApp --version
+rav1e --version
+dav1d --version
+x265 --version
+x264 --version
 
 # Check audio tools
-melt -version && echo "melt OK"
-flac -version && echo "flac OK"
-lame --version && echo "lame OK"
-sox --version && echo "sox OK"
+#melt -version
+flac -version
+lame --version
+sox --version
 
 # Check PDF tools
 #pdftotext -v && echo "pdftotext (Poppler) OK"
 
 # Check utilities
-yt-dlp --version && echo "yt-dlp OK"
+yt-dlp --version

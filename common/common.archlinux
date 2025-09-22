@@ -34,8 +34,9 @@ RUN pacman-key --init && pacman -Sy archlinux-keyring --noconfirm && pacman -Syu
     libjpeg-turbo \
     openjpeg2 \
     libjxl \
+    gifsicle \
     # --- Codecs and WebP/HEIF tools ---
-    libwebp \
+    libwebp-utils \
     webp-pixbuf-loader \
     libheif \
     libavif \

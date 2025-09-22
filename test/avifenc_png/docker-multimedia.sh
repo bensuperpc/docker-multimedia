@@ -18,7 +18,7 @@ PGID="$(id -g)"
 USERNAME="$(id -un)"
 
 docker run --rm \
-        --security-opt no-new-privileges --read-only --cap-drop SYS_ADMIN -e PUID="$PUID" -e PGID="$PGID" -e USERNAME="$USERNAME" \
+        --security-opt no-new-privileges --cap-drop SYS_ADMIN -e PUID="$PUID" -e PGID="$PGID" -e USERNAME="$USERNAME" \
         --mount type=bind,source=$(pwd),target=/work --workdir /work \
         --mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$TMPFS_SIZE \
         --platform linux/amd64 \

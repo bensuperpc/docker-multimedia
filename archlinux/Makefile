@@ -40,8 +40,8 @@ BUILD_IMAGE_CPU_SHARES ?= 1024
 BUILD_IMAGE_MEMORY ?= 16GB
 
 TEST_IMAGE_CMD ?= ls
-TEST_IMAGE_ARGS ?=
+TEST_IMAGE_ARGS ?= -e PUID=$(UID) -e PGID=$(GID) -e USERNAME=bensuperpc
 RUN_IMAGE_CMD ?=
-RUN_IMAGE_ARGS ?=
+RUN_IMAGE_ARGS ?= -e PUID=$(UID) -e PGID=$(GID) -e USERNAME=bensuperpc
 
 include ../template/DockerImage.mk
