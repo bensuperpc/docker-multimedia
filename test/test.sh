@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-#aomenc --help
-#aomdec --help
-#echo "aom OK"
+aomenc --help && echo "aomenc OK"
+aomdec --help && echo "aomdec OK"
 
 #twolame -version
 #echo "twolame OK"

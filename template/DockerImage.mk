@@ -1,8 +1,8 @@
 #//////////////////////////////////////////////////////////////
 #//                                                          //
-#//  docker-multimedia, 2025                                 //
+#//  Generic docker image, 2025                              //
 #//  Created: 30, May, 2021                                  //
-#//  Modified: 30 March, 2025                                //
+#//  Modified: 21 September, 2025                            //
 #//  file: -                                                 //
 #//  -                                                       //
 #//  Source:                                                 //
@@ -82,6 +82,53 @@ BUILD_CPU_SHARES ?= 1024
 BUILD_MEMORY ?= 16GB
 
 # =====================
+# INTERNAL VARIABLES
+# =====================
+
+TAG_WITH_BASE_IMAGE_NAME ?= no
+
+define docker-tags
+$(OUTPUT_IMAGE_FINAL) \
+$(OUTPUT_IMAGE_FINAL):latest \
+$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION) \
+$(if $(filter yes,$(TAG_WITH_BASE_IMAGE_NAME)), \
+	$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME) \
+	$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(1) \
+	$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(1)-$(DATE) \
+	$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(1)-$(DATE)-$(GIT_SHA), \
+	$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(DATE) \
+	$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(DATE)-$(GIT_SHA))
+endef
+
+define docker-run
+$(DOCKER_EXEC) run $(1) --rm \
+	--security-opt no-new-privileges \
+	--mount type=bind,source=$(BIND_HOST_DIR),target=$(BIND_CONTAINER_DIR) \
+	--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
+	--workdir $(WORKDIR) --platform $(PLATFORMS) \
+	--cpus $(CPUS) --cpu-shares $(CPU_SHARES) \
+	--memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
+	--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) \
+	$(2) \
+	$(OUTPUT_IMAGE_FINAL):latest $(3)
+endef
+
+# =====================
+# AUTOMATED VARIABLES
+# =====================
+
+GIT_SHA ?= $(shell git rev-parse HEAD)
+GIT_ORIGIN ?= $(shell git config --get remote.origin.url) 
+
+DATE ?= $(shell date -u +"%Y%m%d")
+UUID ?= $(shell uuidgen)
+
+CURRENT_USER ?= $(shell whoami)
+UID ?= $(shell id -u ${CURRENT_USER})
+GID ?= $(shell id -g ${CURRENT_USER})
+
+
+# =====================
 # TARGETS
 # =====================
 
@@ -100,13 +147,7 @@ Dockerfile: Dockerfile.in $(DOCKER_COMPOSITE_PATH)
 $(BASE_IMAGE_TAGS): Dockerfile
 	$(DOCKER_EXEC) buildx build . --build-context root-project=$(BUILD_CONTEXT) --file $(DOCKERFILE) \
 		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
-		--tag $(OUTPUT_IMAGE_FINAL) \
-		--tag $(OUTPUT_IMAGE_FINAL):latest \
-		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION) \
-		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME) \
-		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$@ \
-		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$@-$(DATE) \
-		--tag $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$@-$(DATE)-$(GIT_SHA) \
+		$(foreach tag,$(call docker-tags,$@),--tag $(tag)) \
 		--memory $(BUILD_IMAGE_MEMORY) --cpu-shares $(BUILD_IMAGE_CPU_SHARES) --compress \
 		--build-arg BUILD_DATE=$(DATE) --build-arg BASE_IMAGE=$(BASE_IMAGE_FINAL):$@ \
 		--build-arg OUTPUT_IMAGE_VERSION=$(OUTPUT_IMAGE_VERSION) --build-arg OUTPUT_IMAGE_NAME=$(OUTPUT_IMAGE_NAME) \
@@ -135,46 +176,22 @@ $(addsuffix .build,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 
 .SECONDEXPANSION:
 $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	$(DOCKER_EXEC) run --rm \
-		--security-opt no-new-privileges \
-		--mount type=bind,source=$(BIND_HOST_DIR),target=$(BIND_CONTAINER_DIR) --workdir $(WORKDIR) \
-		--tmpfs /tmp:exec,size=$(TMPFS_SIZE),mode=1777 --platform $(PLATFORMS) \
-		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
-		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) $(TEST_IMAGE_ARGS) \
-		$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA) $(TEST_IMAGE_CMD)
+	$(call docker-run,,${TEST_IMAGE_ARGS},${TEST_IMAGE_CMD})
 
 .SECONDEXPANSION:
 $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
-	$(DOCKER_EXEC) run -it --rm \
-		--security-opt no-new-privileges \
-		--mount type=bind,source=$(BIND_HOST_DIR),target=$(BIND_CONTAINER_DIR) --workdir $(WORKDIR) \
-		--tmpfs /tmp:exec,size=$(TMPFS_SIZE),mode=1777 --platform $(PLATFORMS) \
-		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
-		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)-$(UUID) $(RUN_IMAGE_ARGS) \
-		$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA) $(RUN_IMAGE_CMD)
+	$(call docker-run,-it,${RUN_IMAGE_ARGS},${RUN_IMAGE_CMD})
 
 .SECONDEXPANSION:
 $(addsuffix .push,$(BASE_IMAGE_TAGS)): $$(basename $$@).test
 	@echo "Pushing $(OUTPUT_IMAGE_FINAL)"
-	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL)
-	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):latest
-	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)
-	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)
-	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)
-	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)
-	$(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)
+	$(foreach tag,$(call docker-tags,$(basename $@)),$(DOCKER_EXEC) push $(tag);)
 #   $(DOCKER_EXEC) push $(OUTPUT_IMAGE_FINAL) --all-tags
 
 .SECONDEXPANSION:
 $(addsuffix .pull,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	@echo "Pulling $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(basename $@)"
-	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL)
-	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):latest
-	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)
-	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)
-	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)
-	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)
-	$(DOCKER_EXEC) pull $(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(basename $@)-$(DATE)-$(GIT_SHA)
+	$(foreach tag,$(call docker-tags,$(basename $@)),$(DOCKER_EXEC) pull $(tag);)
 
 .PHONY: clean
 clean:

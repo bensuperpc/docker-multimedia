@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: ["archlinux"]
+        image: ["archlinux", "debian", "alpine"]
     steps:
       - name: "Checkout Code"
         uses: actions/checkout@v4
@@ -29,16 +29,21 @@ jobs:
           fetch-depth: 5
       - name: "Build the image"
         run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}
-      - name: "Pull the latest image"
+      - name: "Generate the Dockerfile"
+        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.generate
+      - name: "Build the image"
+        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.build
+      - name: "clean the image"
+        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.clean
+#      - name: "purge the image"
+#        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.purge
+      - name: "Pull the latest base image"
         run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.update
       - name: "Test the image"
+        if: matrix.image == 'archlinux'
         run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.test
-#      - name: "clean the image"
-#        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.clean
-#      - name: purge the image
-#        run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.purge
-      - name: "Push to hub.docker.com registry"
-        if: github.ref == 'refs/heads/main'
+      - name: "Push to hub.docker.com registry, only archlinux"
+        if: github.ref == 'refs/heads/main' && matrix.image == 'archlinux'
         run: |
             echo ${{ secrets.DOCKER_PASS }} | docker login --username ${{ secrets.DOCKER_USER }} --password-stdin
             CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.push

@@ -26,6 +26,8 @@ OUTPUT_IMAGE_PATH ?= bensuperpc
 OUTPUT_IMAGE_NAME ?= multimedia
 OUTPUT_IMAGE_VERSION ?= 1.0.0
 
+TAG_WITH_BASE_IMAGE_NAME ?= yes
+
 WORKDIR ?= /work
 
 # Max CPU and memory

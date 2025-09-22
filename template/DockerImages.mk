@@ -1,8 +1,8 @@
 #//////////////////////////////////////////////////////////////
 #//                                                          //
-#//  docker-multimedia, 2025                                 //
+#//  Generic docker images, 2025                             //
 #//  Created: 30, May, 2021                                  //
-#//  Modified: 30 March, 2025                                //
+#//  Modified: 21 September, 2025                            //
 #//  file: -                                                 //
 #//  -                                                       //
 #//  Source:                                                 //
@@ -47,6 +47,8 @@ OUTPUT_IMAGE_PATH ?= bensuperpc
 OUTPUT_IMAGE_NAME ?= multimedia
 OUTPUT_IMAGE_VERSION ?= 1.0.0
 
+TAG_WITH_BASE_IMAGE_NAME ?= no
+
 TEST_IMAGE_CMD ?= ./test/test.sh
 TEST_IMAGE_ARGS ?=
 RUN_IMAGE_CMD ?=
@@ -81,6 +83,8 @@ BUILD_IMAGE_MEMORY ?= 16GB
 # Custom targets
 CUSTOM_TARGET ?= help
 
+TARGETS := all build test run clean purge update push pull version generate
+
 # Merge all variables
 MAKEFILE_VARS ?= AUTHOR="$(AUTHOR)" PLATFORMS="$(PLATFORMS)" \
 	CPUS="$(CPUS)" CPU_SHARES="$(CPU_SHARES)" MEMORY="$(MEMORY)" MEMORY_RESERVATION="$(MEMORY_RESERVATION)" \
@@ -94,7 +98,8 @@ MAKEFILE_VARS ?= AUTHOR="$(AUTHOR)" PLATFORMS="$(PLATFORMS)" \
 	OUTPUT_IMAGE_NAME="$(OUTPUT_IMAGE_NAME)" OUTPUT_IMAGE_VERSION="$(OUTPUT_IMAGE_VERSION)" \
 	DOCKER_COMPOSITE_FOLDER_PATH="$(DOCKER_COMPOSITE_FOLDER_PATH)" \
 	DOCKER_COMPOSITE_SOURCES="$(DOCKER_COMPOSITE_SOURCES)" \
-	DOCKER_COMPOSITE_PATH="$(DOCKER_COMPOSITE_PATH)"
+	DOCKER_COMPOSITE_PATH="$(DOCKER_COMPOSITE_PATH)" TAG_WITH_BASE_IMAGE_NAME="$(TAG_WITH_BASE_IMAGE_NAME)"
+
 
 .PHONY: default
 default: $(addsuffix .test, $(SUBDIRS))
@@ -104,92 +109,17 @@ $(SUBDIRS):
 	rsync --progress --human-readable --archive --verbose --compress --acls --xattrs --bwlimit=500000 --stats --delete-during \
 	    $(DOCKER_COMPOSITE_FOLDER_PATH) $@/common/
 
-.PHONY: test
-test: $(addsuffix .test, $(SUBDIRS))
+.PHONY: $(TARGETS)
+$(TARGETS): %: $(addsuffix .%,$(SUBDIRS))
 
 .SECONDEXPANSION:
-$(addsuffix .test, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) test
-
-.PHONY: run
-run: $(addsuffix .run, $(SUBDIRS))
-
-.SECONDEXPANSION:
-$(addsuffix .run, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) run
-
-.PHONY: build
-build: $(addsuffix .build, $(SUBDIRS))
-
-.SECONDEXPANSION:
-$(addsuffix .build, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) build
-
-.PHONY: all
-all: $(addsuffix .all, $(SUBDIRS))
-
-.PHONY: generate
-test: $(addsuffix .generate, $(SUBDIRS))
-
-.SECONDEXPANSION:
-$(addsuffix .generate, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) generate
-
-.SECONDEXPANSION:
-$(addsuffix .all, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) all
-
-.PHONY: version
-version: $(addsuffix .version, $(SUBDIRS))
-
-.SECONDEXPANSION:
-$(addsuffix .version, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) version
-
-#.PHONY: version
-#version: $(addsuffix .version, $(SUBDIRS))
-
-#%.version:
-#	$(MAKE) $(MAKEFILE_VARS) -C $(patsubst %.version,%,$@) version
-
-.PHONY: clean
-clean: $(addsuffix .clean, $(SUBDIRS))
-
-.SECONDEXPANSION:
-$(addsuffix .clean, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) clean
-
-.PHONY: purge
-purge: $(addsuffix .purge, $(SUBDIRS))
-
-.SECONDEXPANSION:
-$(addsuffix .purge, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) purge
-
-.PHONY: update
-update: $(addsuffix .update, $(SUBDIRS))
-
-.SECONDEXPANSION:
-$(addsuffix .update, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) update
-
-.PHONY: push
-push: $(addsuffix .push, $(SUBDIRS))
-
-.SECONDEXPANSION:
-$(addsuffix .push, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) push
-
-.PHONY: pull
-pull: $(addsuffix .pull, $(SUBDIRS))
-
-.SECONDEXPANSION:
-$(addsuffix .pull, $(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) pull
+$(foreach t,$(TARGETS),$(addsuffix .$(t),$(SUBDIRS))): $$(basename $$@)
+	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) $(subst .,,$(suffix $@))
 
 .PHONY: $(CUSTOM_TARGET)
-$(CUSTOM_TARGET): $(addsuffix .$(CUSTOM_TARGET), $(SUBDIRS))
+$(CUSTOM_TARGET): $(addsuffix .$(CUSTOM_TARGET),$(SUBDIRS))
 
 .SECONDEXPANSION:
-$(addsuffix .$(CUSTOM_TARGET), $(SUBDIRS)): $$(basename $$@)
+$(addsuffix .$(CUSTOM_TARGET),$(SUBDIRS)): $$(basename $$@)
 	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) $(CUSTOM_TARGET)
+

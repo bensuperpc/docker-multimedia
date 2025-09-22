@@ -20,7 +20,7 @@ USERNAME="$(id -un)"
 docker run --rm \
         --security-opt no-new-privileges --read-only --cap-drop SYS_ADMIN -e PUID="$PUID" -e PGID="$PGID" -e USERNAME="$USERNAME" \
         --mount type=bind,source=$(pwd),target=/work --workdir /work \
-        --mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$TMP_RAM \
+        --mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$TMPFS_SIZE \
         --platform linux/amd64 \
         --cpus "$CPUS" --cpu-shares "$CPU_SHARES" --memory-reservation "$RES_RAM" --memory "$MAX_RAM" \
         --name "$DOCKER_IMAGE" \
