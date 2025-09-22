@@ -19,7 +19,6 @@ DOCKER_COMPOSITE_SOURCES = common.label-and-env common.entrypoint common.user \
 # Output docker image
 PROJECT_NAME ?= multimedia
 AUTHOR ?= bensuperpc
-
 BASE_IMAGE_REGISTRY ?= docker.io
 
 OUTPUT_IMAGE_REGISTRY ?= docker.io
