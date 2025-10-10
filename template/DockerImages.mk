@@ -83,7 +83,7 @@ BUILD_IMAGE_MEMORY ?= 16GB
 # Custom targets
 CUSTOM_TARGET ?= help
 
-TARGETS := all build test run clean purge update push pull version generate
+TARGETS := all build test run clean purge update push pull version generate ${CUSTOM_TARGET}
 
 # Merge all variables
 MAKEFILE_VARS ?= AUTHOR="$(AUTHOR)" PLATFORMS="$(PLATFORMS)" \
@@ -116,10 +116,8 @@ $(TARGETS): %: $(addsuffix .%,$(SUBDIRS))
 $(foreach t,$(TARGETS),$(addsuffix .$(t),$(SUBDIRS))): $$(basename $$@)
 	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) $(subst .,,$(suffix $@))
 
-.PHONY: $(CUSTOM_TARGET)
-$(CUSTOM_TARGET): $(addsuffix .$(CUSTOM_TARGET),$(SUBDIRS))
-
 .SECONDEXPANSION:
-$(addsuffix .$(CUSTOM_TARGET),$(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) $(CUSTOM_TARGET)
-
+$(foreach d,$(SUBDIRS),$(d).%):
+	@version_action=$(subst $(firstword $(subst ., ,$@)).,,$@); \
+	echo ">>> Executing in $(firstword $(subst ., ,$@)): $$version_action"; \
+	$(MAKE) $(MAKEFILE_VARS) -C $(firstword $(subst ., ,$@)) $$version_action
