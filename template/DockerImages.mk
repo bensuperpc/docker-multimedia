@@ -30,7 +30,7 @@ GID ?= $(shell id -g ${CURRENT_USER})
 
 SUBDIRS ?= archlinux debian ubuntu
 
-DOCKER_COMPOSITE_SOURCES ?= common.label-and-env common.entrypoint common.user
+DOCKER_COMPOSITE_SOURCES ?= common.label-and-env common.entrypoint common.user common.locales
 
 DOCKER_COMPOSITE_FOLDER_PATH ?= common/
 DOCKER_COMPOSITE_PATH ?= $(addprefix $(DOCKER_COMPOSITE_FOLDER_PATH),$(DOCKER_COMPOSITE_SOURCES))
@@ -38,16 +38,17 @@ DOCKER_COMPOSITE_PATH ?= $(addprefix $(DOCKER_COMPOSITE_FOLDER_PATH),$(DOCKER_CO
 AUTHOR ?= bensuperpc
 WEB_SITE ?= bensuperpc.org
 
-# Base image
+# Base docker image
 BASE_IMAGE_REGISTRY ?= docker.io
+BASE_IMAGE_PATH ?= 
+BASE_IMAGE_NAME ?= archlinux
+BASE_IMAGE_TAGS ?= base
 
 # Output docker image
 OUTPUT_IMAGE_REGISTRY ?= docker.io
 OUTPUT_IMAGE_PATH ?= bensuperpc
 OUTPUT_IMAGE_NAME ?= multimedia
 OUTPUT_IMAGE_VERSION ?= 1.0.0
-
-TAG_WITH_BASE_IMAGE_NAME ?= no
 
 TEST_IMAGE_CMD ?= ./test/test.sh
 TEST_IMAGE_ARGS ?= -e PUID=$(UID) -e PGID=$(GID) -e USERNAME=bensuperpc
@@ -80,12 +81,25 @@ TMPFS_SIZE ?= 4g
 BUILD_IMAGE_CPU_SHARES ?= 1024
 BUILD_IMAGE_MEMORY ?= 16GB
 
+TAG_WITH_BASE_IMAGE_NAME ?= yes
+
+# All images have same parameters
+ALL_SAME_BASE_IMAGE_REGISTRY ?= yes
+ALL_SAME_BASE_IMAGE_PATH ?= yes
+# ALL_SAME_BASE_IMAGE_NAME ?= yes
+ALL_SAME_TAG_WITH_BASE_IMAGE_NAME ?= yes
+ALL_SAME_OUTPUT_IMAGE_REGISTRY ?= yes
+ALL_SAME_OUTPUT_IMAGE_PATH ?= yes
+ALL_SAME_OUTPUT_IMAGE_NAME ?= yes
+ALL_SAME_OUTPUT_IMAGE_VERSION ?= yes
+ALL_SAME_BUILD_ARGS ?= yes
+
 # Custom targets
 CUSTOM_TARGET ?= help
 
-TARGETS := all build test run clean purge update push pull version generate
+TARGETS := all build test run clean purge update push pull version generate ${CUSTOM_TARGET}
 
-# Merge all variables
+# Override sub-makefile variables
 MAKEFILE_VARS ?= AUTHOR="$(AUTHOR)" PLATFORMS="$(PLATFORMS)" \
 	CPUS="$(CPUS)" CPU_SHARES="$(CPU_SHARES)" MEMORY="$(MEMORY)" MEMORY_RESERVATION="$(MEMORY_RESERVATION)" \
 	BUILD_IMAGE_CPU_SHARES="$(BUILD_IMAGE_CPU_SHARES)" BUILD_IMAGE_MEMORY="$(BUILD_IMAGE_MEMORY)" WEB_SITE="$(WEB_SITE)" BIND_HOST_DIR="$(BIND_HOST_DIR)" \
@@ -93,21 +107,45 @@ MAKEFILE_VARS ?= AUTHOR="$(AUTHOR)" PLATFORMS="$(PLATFORMS)" \
 	GIT_SHA="$(GIT_SHA)" GIT_ORIGIN="$(GIT_ORIGIN)" DATE="$(DATE)" UUID="$(UUID)" \
 	UID="$(UID)" GID="$(GID)" TMPFS_SIZE="$(TMPFS_SIZE)" BIND_CONTAINER_DIR="$(BIND_CONTAINER_DIR)" \
 	TEST_IMAGE_CMD="$(TEST_IMAGE_CMD)" RUN_IMAGE_CMD="$(RUN_IMAGE_CMD)" PROGRESS_OUTPUT="$(PROGRESS_OUTPUT)" \
-	BASE_IMAGE_REGISTRY="$(BASE_IMAGE_REGISTRY)" BUILD_IMAGE_ARGS="$(BUILD_IMAGE_ARGS)" \
-	OUTPUT_IMAGE_REGISTRY="$(OUTPUT_IMAGE_REGISTRY)" OUTPUT_IMAGE_PATH="$(OUTPUT_IMAGE_PATH)" \
-	OUTPUT_IMAGE_NAME="$(OUTPUT_IMAGE_NAME)" OUTPUT_IMAGE_VERSION="$(OUTPUT_IMAGE_VERSION)" \
 	DOCKER_COMPOSITE_FOLDER_PATH="$(DOCKER_COMPOSITE_FOLDER_PATH)" \
 	DOCKER_COMPOSITE_SOURCES="$(DOCKER_COMPOSITE_SOURCES)" \
-	DOCKER_COMPOSITE_PATH="$(DOCKER_COMPOSITE_PATH)" TAG_WITH_BASE_IMAGE_NAME="$(TAG_WITH_BASE_IMAGE_NAME)"
+	DOCKER_COMPOSITE_PATH="$(DOCKER_COMPOSITE_PATH)"
 
+ifeq ($(strip $(ALL_SAME_BASE_IMAGE_REGISTRY)),yes)
+	MAKEFILE_VARS += BASE_IMAGE_REGISTRY="$(BASE_IMAGE_REGISTRY)"
+endif
+ifeq ($(strip $(ALL_SAME_BASE_IMAGE_PATH)),yes)
+	MAKEFILE_VARS += BASE_IMAGE_PATH="$(BASE_IMAGE_PATH)"
+endif
+# ifeq ($(strip $(ALL_SAME_BASE_IMAGE_NAME)),yes)
+# 	MAKEFILE_VARS += BASE_IMAGE_NAME="$(BASE_IMAGE_NAME)"
+# endif
+ifeq ($(strip $(ALL_SAME_OUTPUT_IMAGE_REGISTRY)),yes)
+	MAKEFILE_VARS += OUTPUT_IMAGE_REGISTRY="$(OUTPUT_IMAGE_REGISTRY)"
+endif
+ifeq ($(strip $(ALL_SAME_OUTPUT_IMAGE_PATH)),yes)
+	MAKEFILE_VARS += OUTPUT_IMAGE_PATH="$(OUTPUT_IMAGE_PATH)"
+endif
+ifeq ($(strip $(ALL_SAME_OUTPUT_IMAGE_NAME)),yes)
+	MAKEFILE_VARS += OUTPUT_IMAGE_NAME="$(OUTPUT_IMAGE_NAME)"
+endif
+ifeq ($(strip $(ALL_SAME_OUTPUT_IMAGE_VERSION)),yes)
+	MAKEFILE_VARS += OUTPUT_IMAGE_VERSION="$(OUTPUT_IMAGE_VERSION)"
+endif
+ifeq ($(strip $(ALL_SAME_BUILD_ARGS)),yes)
+	MAKEFILE_VARS += BUILD_IMAGE_ARGS="$(BUILD_IMAGE_ARGS)"
+endif
+ifeq ($(strip $(ALL_SAME_TAG_WITH_BASE_IMAGE_NAME)),yes)
+	MAKEFILE_VARS += TAG_WITH_BASE_IMAGE_NAME="$(TAG_WITH_BASE_IMAGE_NAME)"
+endif
 
 .PHONY: default
 default: $(addsuffix .test, $(SUBDIRS))
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS):
-	rsync --progress --human-readable --archive --verbose --compress --acls --xattrs --bwlimit=500000 --stats --delete-during \
-	    $(DOCKER_COMPOSITE_FOLDER_PATH) $@/common/
+	rm -rf $@/common/
+	cp -r $(DOCKER_COMPOSITE_FOLDER_PATH) $@/common/
 
 .PHONY: $(TARGETS)
 $(TARGETS): %: $(addsuffix .%,$(SUBDIRS))
@@ -116,10 +154,11 @@ $(TARGETS): %: $(addsuffix .%,$(SUBDIRS))
 $(foreach t,$(TARGETS),$(addsuffix .$(t),$(SUBDIRS))): $$(basename $$@)
 	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) $(subst .,,$(suffix $@))
 
-.PHONY: $(CUSTOM_TARGET)
-$(CUSTOM_TARGET): $(addsuffix .$(CUSTOM_TARGET),$(SUBDIRS))
-
 .SECONDEXPANSION:
-$(addsuffix .$(CUSTOM_TARGET),$(SUBDIRS)): $$(basename $$@)
-	$(MAKE) $(MAKEFILE_VARS) -C $(basename $@) $(CUSTOM_TARGET)
-
+$(foreach d,$(SUBDIRS),$(d).%): $(subst $(firstword $(subst ., ,$@)).,,$@)
+	@version_action=$(subst $(firstword $(subst ., ,$@)).,,$@); \
+	echo ">>> Copying for $(firstword $(subst ., ,$@))"; \
+	rm -rf $(firstword $(subst ., ,$@))/common/; \
+	cp -r $(DOCKER_COMPOSITE_FOLDER_PATH) $(firstword $(subst ., ,$@))/common/; \
+	echo ">>> Executing in $(firstword $(subst ., ,$@)): $$version_action"; \
+	$(MAKE) $(MAKEFILE_VARS) -C $(firstword $(subst ., ,$@)) $$version_action
