@@ -23,7 +23,7 @@ jobs:
         image: ["archlinux", "debian", "alpine"]
     steps:
       - name: "Checkout Code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
           fetch-depth: 5
