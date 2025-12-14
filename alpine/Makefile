@@ -15,7 +15,7 @@
 BASE_IMAGE_REGISTRY ?= docker.io
 BASE_IMAGE_PATH ?= 
 BASE_IMAGE_NAME ?= alpine
-BASE_IMAGE_TAGS ?= 3.22
+BASE_IMAGE_TAGS ?= 3.20 3.21 3.22 3.23
 
 # Output docker image
 AUTHOR ?= bensuperpc

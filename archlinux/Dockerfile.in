@@ -1,6 +1,9 @@
 ARG BASE_IMAGE=archlinux:base
 FROM ${BASE_IMAGE} AS base
 
+ARG BASE_IMAGE_NAME
+ARG BASE_IMAGE_TAG
+
 #include "common.archlinux"
 
 #include "common.gosu"

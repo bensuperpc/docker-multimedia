@@ -1,5 +1,5 @@
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/latest-stable/community" >> /etc/apk/repositories && \
-    echo "https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/v${BASE_IMAGE_TAG}/main" > /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v${BASE_IMAGE_TAG}/community" >> /etc/apk/repositories && \
     apk update && apk upgrade
 
 RUN apk add --no-cache \
@@ -17,14 +17,23 @@ RUN apk add --no-cache \
     libpng \
     exiv2 \
 #    img2pdf \
+    libwebp-tools \
+    gifsicle \
+    libavif-apps \
+    libjxl-tools \
     # --- Multimedia converters ---
     ffmpeg \
     mkvtoolnix \
 #    multimon-ng \
+    handbrake \
+    x265 \
+    x264-dev \
+    libvpx \
     # --- Codecs and AV1 tools ---
     dav1d \
     rav1e \
     aom \
+    svt-av1 \
     # --- JPEG/WebP tools ---
     jpegoptim \
     libjpeg-turbo \

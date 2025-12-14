@@ -154,6 +154,7 @@ $(BASE_IMAGE_TAGS): Dockerfile
 		$(foreach tag,$(call docker-tags,$@),--tag $(tag)) \
 		--memory $(BUILD_IMAGE_MEMORY) --cpu-shares $(BUILD_IMAGE_CPU_SHARES) --compress \
 		--build-arg BUILD_DATE=$(DATE) --build-arg BASE_IMAGE=$(BASE_IMAGE_FINAL):$@ \
+		--build-arg BASE_IMAGE_NAME=$(BASE_IMAGE_NAME) --build-arg BASE_IMAGE_TAG=$@ \
 		--build-arg OUTPUT_IMAGE_VERSION=$(OUTPUT_IMAGE_VERSION) --build-arg OUTPUT_IMAGE_NAME=$(OUTPUT_IMAGE_NAME) \
 		--build-arg VCS_REF=$(GIT_SHA) --build-arg VCS_URL=$(GIT_ORIGIN) \
 		--build-arg AUTHOR=$(AUTHOR) --build-arg URL=$(WEB_SITE) \

@@ -1,6 +1,9 @@
 ARG BASE_IMAGE=alpine:3.22
 FROM ${BASE_IMAGE} AS base
 
+ARG BASE_IMAGE_NAME
+ARG BASE_IMAGE_TAG
+
 #include "common.alpine"
 
 #include "common.gosu"
