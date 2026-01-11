@@ -209,6 +209,7 @@ clean:
 purge: clean
 	@echo "Remove all $(OUTPUT_IMAGE_FINAL) images and tags"
 	$(DOCKER_EXEC) images --filter='reference=$(OUTPUT_IMAGE_FINAL)' --format='{{.Repository}}:{{.Tag}}' | xargs -r $(DOCKER_EXEC) rmi -f
+	$(DOCKER_EXEC) system prune -f
 #   	docker rmi -f $(docker images -f "dangling=true" -q) 2>/dev/null || true
 
 .PHONY: update

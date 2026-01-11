@@ -12,4 +12,4 @@ if [ ! -f "${ARG1}" ]; then
 fi
 
 # --line-buffer
-parallel --jobs "$INSTANCE_COUNT" time "./$DOCKER_SCRIPT" "./$CONVERT_SCRIPT" {1} :::: "$ARG1"
+parallel --jobs "$INSTANCE_COUNT" "./$DOCKER_SCRIPT" "./$CONVERT_SCRIPT" {1} :::: "$ARG1"

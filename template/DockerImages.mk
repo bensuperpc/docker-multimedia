@@ -51,9 +51,9 @@ OUTPUT_IMAGE_NAME ?= multimedia
 OUTPUT_IMAGE_VERSION ?= 1.0.0
 
 TEST_IMAGE_CMD ?= ./test/test.sh
-TEST_IMAGE_ARGS ?= -e PUID=$(UID) -e PGID=$(GID) -e USERNAME=bensuperpc
+TEST_IMAGE_ARGS ?= --user $(UID):$(GID)
 RUN_IMAGE_CMD ?=
-RUN_IMAGE_ARGS ?= -e PUID=$(UID) -e PGID=$(GID) -e USERNAME=bensuperpc
+RUN_IMAGE_ARGS ?= --user $(UID):$(GID)
 
 BUILD_IMAGE_ARGS ?=
 
