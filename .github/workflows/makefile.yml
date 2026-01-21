@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: ["archlinux", "debian", "alpine"]
+        image: ["archlinux/base", "debian/13", "alpine/3.23", "ubuntu/24.04"]
     steps:
       - name: "Checkout Code"
         uses: actions/checkout@v4
@@ -40,10 +40,10 @@ jobs:
       - name: "Pull the latest base image"
         run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.update
       - name: "Test the image"
-        if: matrix.image == 'archlinux'
+        if: matrix.image == 'archlinux/base'
         run: CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.test
       - name: "Push to hub.docker.com registry, only archlinux"
-        if: github.ref == 'refs/heads/main' && matrix.image == 'archlinux'
+        if: github.ref == 'refs/heads/main' && matrix.image == 'archlinux/base'
         run: |
             echo ${{ secrets.DOCKER_PASS }} | docker login --username ${{ secrets.DOCKER_USER }} --password-stdin
             CPUS=4.0 MEMORY=8GB make ${{ matrix.image }}.push
