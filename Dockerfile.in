@@ -1,0 +1,14 @@
+ARG BASE_IMAGE=debian:13
+FROM ${BASE_IMAGE} AS base
+
+### @INCLUDE common.debian.base ###
+
+### @INCLUDE common.debian.additional ###
+
+### @INCLUDE common.locales ###
+
+FROM base AS final
+
+### @INCLUDE common.label-and-env ###
+
+### @INCLUDE common.entrypoint ###

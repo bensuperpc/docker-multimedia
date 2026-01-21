@@ -1,13 +1,14 @@
 ARG BASE_IMAGE=ubuntu:24.04
 FROM ${BASE_IMAGE} AS base
 
-#include "common.debian"
+ARG BASE_IMAGE_NAME
+ARG BASE_IMAGE_TAG
 
-#include "common.gosu"
+### @INCLUDE common.debian ###
 
 FROM base AS final
 
-#include "common.label-and-env"
+### @INCLUDE common.label-and-env ###
 
 # Fix PATH for perl
 ENV PATH="/usr/bin/vendor_perl:$PATH"
@@ -15,7 +16,4 @@ ENV PATH="/usr/bin/vendor_perl:$PATH"
 VOLUME [ "/work" ]
 WORKDIR /work
 
-#include "common.entrypoint"
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/bin/bash", "-l"]
+### @INCLUDE common.entrypoint ###

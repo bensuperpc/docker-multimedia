@@ -1,3 +1,10 @@
+ARG BASE_IMAGE=debian:13
+FROM ${BASE_IMAGE} AS base
+
+# ARG BASE_IMAGE_NAME
+# ARG BASE_IMAGE_TAG
+
+### @INCLUDE common.debian ###
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get -y install \
@@ -93,3 +100,44 @@ RUN apt-get update && apt-get -y install \
 
 # Not found: av1an libdvdcss dsp avisynthplus-dev libultrahdr-dev python3-pycryptodomex
 # Conflicts: python3-pyxattr
+
+FROM base AS final
+
+### @INCLUDE common.label-and-env ###
+ARG BUILD_DATE=${BUILD_DATE}
+ARG VCS_REF=""
+ARG VCS_URL="https://github.com/bensuperpc/docker-multimedia"
+ARG OUTPUT_IMAGE_NAME="docker-multimedia"
+ARG AUTHOR="Bensuperpc"
+ARG URL="https://github.com/bensuperpc"
+
+ARG IMAGE_VERSION="1.0.0"
+ENV IMAGE_VERSION=${IMAGE_VERSION}
+
+ENV TERM=xterm-256color
+
+LABEL maintainer="Bensuperpc"
+LABEL author="Bensuperpc"
+LABEL description="Docker image with multimedia tools"
+
+LABEL org.label-schema.schema-version="1.0" \
+      org.label-schema.build-date=${BUILD_DATE} \
+      org.label-schema.name=${OUTPUT_IMAGE_NAME} \
+      org.label-schema.description="multimedia tools" \
+      org.label-schema.version=${IMAGE_VERSION} \
+      org.label-schema.vendor=${AUTHOR} \
+      org.label-schema.url=${URL} \
+      org.label-schema.vcs-url=${VCS_URL} \
+      org.label-schema.vcs-ref=${VCS_REF} \
+      org.label-schema.docker.cmd=""
+
+# Fix PATH for perl
+ENV PATH="/usr/bin/vendor_perl:$PATH"
+
+VOLUME [ "/work" ]
+WORKDIR /work
+
+### @INCLUDE common.entrypoint ###
+
+#COPY --from=root-project  
+CMD ["/bin/bash", "-l"]
