@@ -11,7 +11,25 @@
 #//                                                          //
 #//////////////////////////////////////////////////////////////
 
-.NOTPARALLEL:
+# ==============================================================================
+# Preset detection
+# ==============================================================================
+PRESET_DIR       ?= presets
+
+# # Find all preset.mk files in presets/ subfolders
+PRESET_FILES := $(shell find $(PRESET_DIR) -name "preset.mk")
+# # Transform 'presets/debian/bookworm/preset.mk' into 'debian/bookworm'
+ALL_PRESETS  := $(patsubst $(PRESET_DIR)/%/preset.mk,%,$(PRESET_FILES))
+
+CURRENT_TARGET_NAME := $(firstword $(MAKECMDGOALS))
+
+POSSIBLE_PRESET := $(basename $(CURRENT_TARGET_NAME))
+
+ifneq ($(wildcard $(PRESET_DIR)/$(POSSIBLE_PRESET)/preset.mk),)
+    include $(PRESET_DIR)/$(POSSIBLE_PRESET)/preset.mk
+    PRESET_PATH := $(PRESET_DIR)/$(POSSIBLE_PRESET)
+endif
+
 # ==============================================================================
 # Main config Makefile for Docker SDK Images
 # ==============================================================================
@@ -20,7 +38,7 @@ WEB_SITE       ?= bensuperpc.org
 
 # Registries
 BASE_IMAGE_REGISTRY   ?= docker.io
-BASE_IMAGE_PATH       ?= 
+BASE_IMAGE_PATH       ?=
 OUTPUT_IMAGE_REGISTRY ?= docker.io
 OUTPUT_IMAGE_PATH     ?= bensuperpc
 OUTPUT_IMAGE_VERSION  ?= 1.0.0
@@ -42,12 +60,12 @@ ARCH_LIST        ?= linux/amd64
 PLATFORMS        ?= $(subst $(space),$(comma),$(strip $(ARCH_LIST)))
 TMPFS_SIZE       ?= 4g
 
+DOCKER_BUILD_NETWORK ?= host
 # Build Resources
 BUILD_MEMORY     ?= 16GB
 BUILD_CPU_SHARES ?= 1024
 
 # Folders
-PRESET_DIR       ?= presets
 COMMON_DIR       ?= common
 
 # Tagging flags
@@ -57,7 +75,7 @@ TAG_WITH_GIT_SHA   ?= yes
 TAG_LATEST        ?= yes
 
 DOCKER_COMPOSITE_SOURCES = common.label-and-env common.entrypoint common.user \
-    common.debian common.gosu common.archlinux common.alpine
+    common.debian common.gosu common.archlinux common.alpine common.old.debian
 
 # RUN/TEST
 TEST_IMAGE_CMD  ?= ls
@@ -71,11 +89,11 @@ MEMORY_RESERVATION ?= 1GB
 CPUS		  ?= 8.0
 CPU_SHARES	  ?= 1024
 
-BIND_HOST_DIR ?= $(shell pwd)
+BIND_HOST_DIR := $(shell pwd)
 BIND_CONTAINER_DIR ?= /work
 WORKDIR ?= /work
 
-ROOT_PROJECT ?= $(shell pwd)
+ROOT_PROJECT := $(shell pwd)
 
 # Automatic variables
 CURRENT_USER = $(shell whoami)
@@ -88,14 +106,6 @@ UUID           = $(shell uuidgen)
 
 TRIVY_IMAGE    ?= aquasec/trivy:0.68.2
 HADOLINT_IMAGE ?= hadolint/hadolint:v2.14.0
-
-# ==============================================================================
-# Preset detection
-# ==============================================================================
-# # Find all preset.mk files in presets/ subfolders
-PRESET_FILES := $(shell find $(PRESET_DIR) -name "preset.mk")
-# # Transform 'presets/debian/bookworm/preset.mk' into 'debian/bookworm'
-ALL_PRESETS  := $(patsubst $(PRESET_DIR)/%/preset.mk,%,$(PRESET_FILES))
 
 # Initialize variables for the current preset
 comma := ,
@@ -123,15 +133,6 @@ endef
 
 $(foreach p,$(ALL_PRESETS),$(eval $(call BIND_PRESET_DEPENDENCIES,$(p))))
 
-CURRENT_TARGET_NAME := $(firstword $(MAKECMDGOALS))
-
-POSSIBLE_PRESET := $(basename $(CURRENT_TARGET_NAME))
-
-ifneq ($(wildcard $(PRESET_DIR)/$(POSSIBLE_PRESET)/preset.mk),)
-    include $(PRESET_DIR)/$(POSSIBLE_PRESET)/preset.mk
-    PRESET_PATH := $(PRESET_DIR)/$(POSSIBLE_PRESET)
-endif
-
 # Generate final image names
 ifeq ($(strip $(BASE_IMAGE_PATH)),)
     BASE_IMAGE_FINAL := $(BASE_IMAGE_REGISTRY)/$(BASE_IMAGE_NAME)
@@ -145,19 +146,26 @@ OUTPUT_IMAGE_FINAL := $(OUTPUT_IMAGE_REGISTRY)/$(OUTPUT_IMAGE_PATH)/$(OUTPUT_IMA
 # Mandatory variables check
 # ==============================================================================
 MANDATORY_VARS = BASE_IMAGE_NAME BASE_IMAGE_TAG OUTPUT_IMAGE_NAME OUTPUT_IMAGE_REGISTRY \
-	OUTPUT_IMAGE_PATH
+	OUTPUT_IMAGE_PATH BASE_IMAGE_REGISTRY
+
+# ==============================================================================
+# Custom docker-tags
+# ==============================================================================
+
+CUSTOM_OUTPUT_BASE_IMAGE_NAME_TAG ?= $(BASE_IMAGE_NAME)
+CUSTOM_OUTPUT_BASE_IMAGE_TAG ?= $(BASE_IMAGE_TAG)
 
 # ==============================================================================
 # Useful functions
 # ==============================================================================
 define docker-tags
 	$(if $(filter yes,$(TAG_LATEST)),$(OUTPUT_IMAGE_FINAL):latest) \
-	$(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME) \
-	$(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(BASE_IMAGE_TAG) \
-	$(if $(filter yes,$(TAG_WITH_BASE_NAME)),$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)) \
-	$(if $(filter yes,$(TAG_WITH_BASE_NAME)),$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(BASE_IMAGE_TAG)) \
-	$(if $(filter yes,$(TAG_WITH_DATE)),$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(BASE_IMAGE_TAG)-$(DATE)) \
-	$(if $(filter yes,$(TAG_WITH_GIT_SHA)),$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(BASE_IMAGE_NAME)-$(BASE_IMAGE_TAG)-$(DATE)-$(GIT_SHA))
+	$(OUTPUT_IMAGE_FINAL):$(CUSTOM_OUTPUT_BASE_IMAGE_NAME_TAG) \
+	$(OUTPUT_IMAGE_FINAL):$(CUSTOM_OUTPUT_BASE_IMAGE_NAME_TAG)-$(CUSTOM_OUTPUT_BASE_IMAGE_TAG) \
+	$(if $(filter yes,$(TAG_WITH_BASE_NAME)),$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(CUSTOM_OUTPUT_BASE_IMAGE_NAME_TAG)) \
+	$(if $(filter yes,$(TAG_WITH_BASE_NAME)),$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(CUSTOM_OUTPUT_BASE_IMAGE_NAME_TAG)-$(CUSTOM_OUTPUT_BASE_IMAGE_TAG)) \
+	$(if $(filter yes,$(TAG_WITH_DATE)),$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(CUSTOM_OUTPUT_BASE_IMAGE_NAME_TAG)-$(CUSTOM_OUTPUT_BASE_IMAGE_TAG)-$(DATE)) \
+	$(if $(filter yes,$(TAG_WITH_GIT_SHA)),$(OUTPUT_IMAGE_FINAL):$(OUTPUT_IMAGE_VERSION)-$(CUSTOM_OUTPUT_BASE_IMAGE_NAME_TAG)-$(CUSTOM_OUTPUT_BASE_IMAGE_TAG)-$(DATE)-$(GIT_SHA))
 endef
 
 define docker-run-cmd
@@ -169,7 +177,7 @@ define docker-run-cmd
 		--platform $(ARCH_LIST) \
 		--memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) \
-		--name $(OUTPUT_IMAGE_NAME)-$(BASE_IMAGE_TAG)-$(UUID) \
+		--name $(OUTPUT_IMAGE_NAME)-$(CUSTOM_OUTPUT_BASE_IMAGE_NAME_TAG)-$(CUSTOM_OUTPUT_BASE_IMAGE_TAG)-$(UUID) \
 		$(2) \
 		$(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME)-$(BASE_IMAGE_TAG) $(3)
 endef
@@ -196,9 +204,12 @@ $(ALL_PRESETS): %: %.build
 		-e '/^### @INCLUDE $(f) ###$$/ r $(COMMON_DIR)/$(f)') \
 		$(PRESET_DIR)/$*/Dockerfile.in > $(PRESET_DIR)/$*/Dockerfile
 
+# 		--secret id=gitlab_token,env=CI_JOB_TOKEN
+# 		--secret id=github_token,env=GITHUB_TOKEN
 %.build: %.generate
 	$(DOCKER_EXEC) buildx build $(PRESET_DIR)/$* \
 		--file $(PRESET_DIR)/$*/Dockerfile \
+		--network $(DOCKER_BUILD_NETWORK) \
 		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
 		$(foreach tag,$(call docker-tags),--tag $(tag)) \
 		--memory $(BUILD_MEMORY) --cpu-shares $(BUILD_CPU_SHARES) \
@@ -275,8 +286,14 @@ $(ALL_PRESETS): %: %.build
 # ==============================================================================
 .PHONY: $(PRESET_TARGETS)
 
-$(PRESET_TARGETS): %:
-	@$(foreach p,$(ALL_PRESETS),$(MAKE) $(p).$*;)
+%-all:
+	@$(foreach p,$(ALL_PRESETS),$(MAKE) $(p).$* ;)
+
+build-all: $(ALL_BUILDS)
+test-all:  $(ALL_TESTS)
+
+$(ALL_BUILDS) $(ALL_TESTS) $(ALL_PUSHES):
+	@$(MAKE) $@
 
 list:
 	@echo "Presets disponibles :"

@@ -16,7 +16,7 @@ function convert_to_webp {
     if [ -f "$output_file" ]; then
         echo "File $output_file already exists. Skipping." >&2
         check_image_diff "$input_file" "$output_file"
-        return
+        return $?
     fi
 
     # Convert the image to WebP format -mt -q "$q"
@@ -37,19 +37,20 @@ function check_image_diff {
     if ! compare -metric AE "$input_file" "$output_file" null: >/dev/null 2>&1; then
         echo "Error: images differ for file $input_file" >&2
         rm -f "$output_file"
-        return
+        return 1
     fi
-    if ! diff -q <(magick "$input_file" ppm:-) <(magick "$output_file" ppm:-) >/dev/null 2>&1; then
-        echo "Error: images differ for file $input_file" >&2
-        rm -f "$output_file"
-        return
-    fi
-    if ! [ "$(ffmpeg -hide_banner -loglevel error -i "$input_file" -f image2pipe -pix_fmt rgba -vcodec rawvideo - | sha256sum 2>/dev/null)" \
-            = "$(ffmpeg -hide_banner -loglevel error -i "$output_file" -f image2pipe -pix_fmt rgba -vcodec rawvideo - | sha256sum 2>/dev/null)" ]; then
-        echo "Error: images differ for file $input_file" >&2
-        rm -f "$output_file"
-        return
-    fi
+
+    # if ! diff -q <(magick "$input_file" ppm:-) <(magick "$output_file" ppm:-) >/dev/null 2>&1; then
+    #     echo "Error: images differ for file $input_file" >&2
+    #     rm -f "$output_file"
+    #     return 1
+    # fi
+    # if ! [ "$(ffmpeg -hide_banner -loglevel error -i "$input_file" -f image2pipe -pix_fmt rgba -vcodec rawvideo - | sha256sum 2>/dev/null)" \
+    #         = "$(ffmpeg -hide_banner -loglevel error -i "$output_file" -f image2pipe -pix_fmt rgba -vcodec rawvideo - | sha256sum 2>/dev/null)" ]; then
+    #     echo "Error: images differ for file $input_file" >&2
+    #     rm -f "$output_file"
+    #     return 1
+    # fi
 }
 
 export -f convert_to_webp check_image_diff

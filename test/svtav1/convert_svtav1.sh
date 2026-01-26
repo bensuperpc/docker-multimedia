@@ -14,7 +14,7 @@ function convert_to_av1 {
     local input_file="$1"
     local output_file="${input_file%.*}_preset${preset}_crf${crf}_option${option}.mkv"
 
-    ffmpeg -i "$input_file" -y -loglevel warning -hide_banner -c:v libsvtav1 -preset "$preset" -crf "$crf" -svtav1-params "$option" -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 "$output_file"
+    ffmpeg -i "$input_file" -y -loglevel warning -hide_banner -c:v libsvtav1 -pix_fmt yuv420p10le -preset "$preset" -crf "$crf" -svtav1-params "$option" -c:a copy -c:s copy -map 0 -map_metadata 0 -map_chapters 0 "$output_file"
 
     touch -r "$input_file" "$output_file"
 

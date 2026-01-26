@@ -1,0 +1,14 @@
+BASE_IMAGE_REGISTRY ?= docker.io
+BASE_IMAGE_PATH ?= 
+BASE_IMAGE_NAME = debian
+BASE_IMAGE_TAG  = 9
+
+OUTPUT_IMAGE_REGISTRY = docker.io
+OUTPUT_IMAGE_PATH = bensuperpc
+OUTPUT_IMAGE_NAME = multimedia
+
+
+TEST_IMAGE_CMD = ./test/test.sh
+TEST_IMAGE_ARGS =
+RUN_IMAGE_CMD  = /bin/bash
+RUN_IMAGE_ARGS =

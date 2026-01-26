@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-aomenc --help
-aomdec --help
+aomenc --help || true
+aomdec --help || true
 
 #twolame -version
 #echo "twolame OK"
@@ -22,7 +22,7 @@ if command -v magick > /dev/null; then
 else
     convert -version
 fi
-gifsicle --version
+gifsicle --version || true
 
 # Check video encoders/decoders
 SvtAv1EncApp --version

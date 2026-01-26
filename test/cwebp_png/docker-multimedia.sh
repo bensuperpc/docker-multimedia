@@ -7,7 +7,7 @@ TAG="1.0.0-archlinux"
 
 DOCKER_IMAGE="multimedia-$(uuidgen)"
 
-CPUS="$(nproc --all)"
+CPUS="${THREADS_PER_INSTANCE:-$(nproc --all)}"
 CPU_SHARES="1024"
 RES_RAM="4GB"
 MAX_RAM="16GB"
@@ -20,7 +20,7 @@ USERNAME="$(id -un)"
 # --read-only
 docker run --rm \
         --security-opt no-new-privileges --cap-drop SYS_ADMIN --user "$PUID:$PGID" -e USERNAME="$USERNAME" \
-        --mount type=bind,source=$(pwd),target=/work --workdir /work \
+        --mount type=bind,source="$(pwd)",target=/work --workdir /work \
         --mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$TMPFS_SIZE \
         --platform linux/amd64 \
         --cpus "$CPUS" --cpu-shares "$CPU_SHARES" --memory-reservation "$RES_RAM" --memory "$MAX_RAM" \

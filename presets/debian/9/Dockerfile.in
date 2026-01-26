@@ -1,0 +1,19 @@
+ARG BASE_IMAGE=debian:9
+FROM ${BASE_IMAGE} AS base
+
+# ARG BASE_IMAGE_NAME
+# ARG BASE_IMAGE_TAG
+
+### @INCLUDE common.old.debian ###
+
+FROM base AS final
+
+### @INCLUDE common.label-and-env ###
+
+# Fix PATH for perl
+ENV PATH="/usr/bin/vendor_perl:$PATH"
+
+VOLUME [ "/work" ]
+WORKDIR /work
+
+### @INCLUDE common.entrypoint ###
