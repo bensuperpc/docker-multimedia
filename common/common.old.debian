@@ -1,0 +1,101 @@
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN sed -i '/-updates/d' /etc/apt/sources.list \
+    && sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list \
+    && sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
+    && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until \
+    && apt-get update
+
+RUN apt-get update && apt-get -y install \
+# Core multimedia tools
+    ffmpeg \
+    x264 \
+    x265 \
+    melt \
+    multimon-ng \
+    nageru \
+    libheif-plugin-aomenc \
+# AV1
+    dav1d \
+    rav1e \
+    svt-av1 \
+    libheif-dev \
+    libavif-dev \
+    libavif-bin \
+    libaom-dev \
+# JPEG
+    jpegoptim \
+    libjpeg-dev \
+    libopenjp2-7-dev \    
+    libjxl-dev \
+    libjxl-tools \
+# WebP
+    webp \
+    webp-pixbuf-loader \
+    handbrake-cli \
+# Audio and Video Effects Plugins
+    ladspa-sdk \
+    frei0r-plugins-dev \
+# Image and Video Processing
+    libopencv-dev \
+    imagemagick \
+    libwmf-dev \
+    libopenraw-dev \
+    libraw-dev \
+    libpng-dev \
+# MIDI & Audio
+    timidity \
+    mencoder \
+    sox \
+    vorbis-tools \
+    flac \
+    lame \
+    libopusenc-dev \
+# Developer Tools
+    build-essential \
+    libdevil-dev \
+    libhdf5-dev \
+    libzip-dev \
+    djvulibre-bin \
+    wavpack \
+    openmpi-bin \
+# File and Metadata Management
+    gvfs \
+    mat2 \
+    libffms2-dev \
+# DVD & MPEG-2
+    twolame \
+# HDR
+# PDF Tools
+    ghostscript \
+    exiv2 \
+    img2pdf \
+# Utilities
+    mediainfo \
+    ffmpegthumbnailer \
+    mkvtoolnix \
+    yt-dlp \
+    atomicparsley \
+    aria2 \
+# Python Libraries
+    python3-mutagen \
+    python3-pycryptodome \
+    python3-secretstorage \
+    python3-websockets \
+    python3-xattr \
+# RTMP Streaming
+    rtmpdump \
+# Compression Tools
+    xz-utils \
+    gzip \
+    bzip2 \
+    tar \    
+    zstd \
+# Shell Enhancements
+    bash-completion \
+    && apt-get clean autoclean --yes \
+    && apt-get autoremove --purge --yes \
+    && rm -rf /var/lib/{apt,dpkg,cache,log}/
+
+# Not found: av1an libdvdcss dsp avisynthplus-dev libultrahdr-dev python3-pycryptodomex
+# Conflicts: python3-pyxattr
